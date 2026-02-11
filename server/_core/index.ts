@@ -32,6 +32,17 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
   
+  // Redirect root domain to www subdomain (must be FIRST middleware)
+  app.use((req, res, next) => {
+    const host = req.get('host') || '';
+    const hostWithoutPort = host.split(':')[0]; // Remove port if present
+    if (hostWithoutPort === 'dopaminedasher.com') {
+      const protocol = req.protocol || 'https';
+      return res.redirect(301, `${protocol}://www.dopaminedasher.com${req.originalUrl}`);
+    }
+    next();
+  });
+  
   // Stripe webhook MUST be registered BEFORE express.json() for signature verification
   app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
   

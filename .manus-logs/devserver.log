@@ -922,3 +922,14 @@
 [2026-02-11T07:25:36.330Z] 2:25:36 AM [tsx] change in ./server/_core/index.ts Restarting...
 [2026-02-11T07:25:39.226Z] c[OAuth] Initialized with baseURL: https://api.manus.im
 [2026-02-11T07:25:39.706Z] Server running on http://localhost:3000/
+[2026-02-11T20:57:44.060Z] Dev server process group stopped
+[2026-02-11T20:57:47.081Z] Starting dev server with command: pnpm run dev
+[2026-02-11T20:57:47.582Z] 
+[2026-02-11T20:57:47.583Z] > dopamine_dasher@1.0.0 dev /home/ubuntu/dopamine_dasher
+[2026-02-11T20:57:47.583Z] > NODE_ENV=development tsx watch server/_core/index.ts
+[2026-02-11T20:57:47.583Z] 
+[2026-02-11T20:57:51.988Z] [OAuth] Initialized with baseURL: https://api.manus.im
+[2026-02-11T20:57:52.454Z] Server running on http://localhost:3000/
+[2026-02-11T22:41:23.864Z] 5:41:23 PM [tsx] change in ./server/_core/index.ts Restarting...
+[2026-02-11T22:41:25.424Z] c[OAuth] Initialized with baseURL: https://api.manus.im
+[2026-02-11T22:41:25.643Z] Server running on http://localhost:3000/

@@ -4104,6 +4104,15 @@ async function findAvailablePort(startPort = 3e3) {
 async function startServer() {
   const app = express2();
   const server = createServer(app);
+  app.use((req, res, next) => {
+    const host = req.get("host") || "";
+    const hostWithoutPort = host.split(":")[0];
+    if (hostWithoutPort === "dopaminedasher.com") {
+      const protocol = req.protocol || "https";
+      return res.redirect(301, `${protocol}://www.dopaminedasher.com${req.originalUrl}`);
+    }
+    next();
+  });
   app.post("/api/stripe/webhook", express2.raw({ type: "application/json" }), handleStripeWebhook);
   app.use(express2.json({ limit: "50mb" }));
   app.use(express2.urlencoded({ limit: "50mb", extended: true }));
