@@ -78,3 +78,102 @@
 - Domain redirect working (dopaminedasher.com → www.dopaminedasher.com)
 - No startup sound issues
 - Performance optimized
+
+
+## Post-Launch Features - In Progress (Pending Review)
+
+### 1. Launch Analytics Dashboard
+- [x] Create analytics database tables (events, funnels, cohorts)
+- [x] Build backend procedures for analytics queries
+- [x] Create Analytics page component
+- [x] Display signup funnel metrics
+- [x] Display task completion rate charts
+- [ ] Display retention metrics (daily/weekly/monthly)
+- [x] Add date range filtering
+- [ ] Write tests for analytics procedures
+
+### 2. Push Notification A/B Testing
+- [x] Create A/B test database schema
+- [x] Implement notification variant assignment logic
+- [ ] Build notification scheduling system
+- [ ] Test variant 1: "You've got this!" messaging
+- [ ] Test variant 2: "Time to shine?" messaging
+- [ ] Track notification engagement metrics
+- [ ] Create A/B test results dashboard
+- [ ] Write tests for A/B testing logic
+
+### 3. Streak Milestone Celebrations
+- [x] Add milestone tracking (7-day, 30-day, 100-day)
+- [x] Create special celebration modal for milestones
+- [x] Add confetti animation for milestones
+- [x] Add milestone-specific sound effects
+- [ ] Create milestone badges/achievements
+- [ ] Display milestone history in Stats page
+- [x] Add sharing capability for milestone achievements
+- [ ] Write tests for milestone detection
+
+### Status
+**PAUSED FOR REVIEW** - Awaiting feedback from site review before continuing implementation
+
+
+## Nervous System Design Refinements (Chat Review Feedback)
+
+### Phase 1: Opening Experience Adjustment
+- [ ] Implement calm 5-second entry screen on app open
+- [ ] Remove flashing elements and urgent prompts
+- [ ] Hide streak loss on initial load
+- [ ] Show "It's okay." message first
+- [ ] Add 3-5 second pause before action prompt
+- [ ] Show "When you're ready, we'll touch one small thing"
+
+### Phase 2: Language Refinement
+- [ ] Replace "Start" with "Let's touch"
+- [ ] Replace "Complete" with "We'll move one"
+- [ ] Replace "Finish" with "Reduce this by 1%"
+- [ ] Replace "Time to" with "Just for a moment"
+- [ ] Replace "You need to" with "You can stop anytime"
+- [ ] Remove obligation wording throughout app
+- [ ] Audit all copy for urgency language
+
+### Phase 3: Formalize Freeze Mode
+- [ ] Add visible "🧊 Frozen?" entry point
+- [ ] Implement Freeze Mode state
+- [ ] Show "Nothing is urgent right now" message
+- [ ] Add 10-second quiet presence (no timer/task)
+- [ ] Then show "Let's reduce one small weight"
+- [ ] Make Freeze Mode primary anchor for habit formation
+
+### Phase 4: Permission to Stop
+- [ ] Add explicit "That's enough" message after first task
+- [ ] Show "You did your part" affirmation
+- [ ] Add "You can leave it here" option
+- [ ] Prevent subconscious escalation fear
+- [ ] Allow users to exit without guilt
+
+### Phase 5: Drift-Based Smart Reminders
+- [ ] Add onboarding preference: "Want me to nudge you if you drift?"
+- [ ] Implement 48-hour no-use soft nudge
+- [ ] Implement 72-hour gentle reminder
+- [ ] Implement 7-day re-entry invitation
+- [ ] Remove streak loss mentions from notifications
+- [ ] Remove urgency language from reminders
+- [ ] Use examples: "Drift happens. Want to feel lighter?"
+- [ ] Test notification tone guidelines
+
+### Phase 6: Celebration Sequencing Refinement
+- [ ] Ensure downshift happens before celebration
+- [ ] Keep coin burst, Dashie jump, XP rise, streak glow
+- [ ] Make celebration feel earned, not pressuring
+- [ ] Test celebration timing after regulation
+
+### Phase 7: Remove/Avoid Features
+- [ ] Confirm leaderboards are not visible/disabled
+- [ ] Avoid mandatory surveys before use
+- [ ] Avoid forced breathing routines
+- [ ] Avoid long onboarding forms
+- [ ] Keep product focused on relief, not competition
+
+### Phase 8: Success Metric Shift
+- [ ] Track time from freeze to first micro-action
+- [ ] Monitor this metric instead of daily streak length
+- [ ] Measure re-engagement after drift periods

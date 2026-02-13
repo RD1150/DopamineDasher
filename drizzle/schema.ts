@@ -825,3 +825,92 @@ export const upsellPrompts = mysqlTable("upsellPrompts", {
 
 export type UpsellPrompt = typeof upsellPrompts.$inferSelect;
 export type InsertUpsellPrompt = typeof upsellPrompts.$inferInsert;
+
+
+/**
+ * Analytics events - tracks user actions for analytics dashboard
+ */
+export const analyticsEvents = mysqlTable("analyticsEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Event type
+  eventType: mysqlEnum("eventType", [
+    "signup",
+    "onboarding_complete",
+    "first_task_complete",
+    "task_complete",
+    "streak_milestone",
+    "premium_upgrade",
+    "notification_sent",
+    "notification_clicked",
+    "session_start",
+    "session_end"
+  ]).notNull(),
+  
+  // Event metadata
+  metadata: json("metadata").$type<Record<string, any>>(),
+  
+  // Timestamps
+  date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type InsertAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+
+/**
+ * Push notification A/B tests - tracks notification variants and engagement
+ */
+export const notificationABTests = mysqlTable("notificationABTests", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Test variant assignment
+  testId: varchar("testId", { length: 100 }).notNull(), // e.g., "reminder_messaging_v1"
+  variant: mysqlEnum("variant", ["control", "variant_a", "variant_b"]).notNull(),
+  
+  // Notification details
+  message: text("message").notNull(),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  
+  // Engagement tracking
+  delivered: int("delivered").notNull().default(0),
+  clicked: int("clicked").notNull().default(0),
+  dismissed: int("dismissed").notNull().default(0),
+  clickedAt: timestamp("clickedAt"),
+  
+  // Outcome
+  taskCompletedAfter: int("taskCompletedAfter").notNull().default(0), // 0 or 1
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type NotificationABTest = typeof notificationABTests.$inferSelect;
+export type InsertNotificationABTest = typeof notificationABTests.$inferInsert;
+
+/**
+ * Streak milestones - tracks when users hit 7-day, 30-day, 100-day streaks
+ */
+export const streakMilestones = mysqlTable("streakMilestones", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Milestone details
+  streakDays: int("streakDays").notNull(), // 7, 30, 100, etc.
+  milestoneType: mysqlEnum("milestoneType", ["seven_day", "thirty_day", "hundred_day", "custom"]).notNull(),
+  
+  // Achievement details
+  achievedAt: timestamp("achievedAt").notNull(),
+  celebrationShown: int("celebrationShown").notNull().default(0), // 0 or 1
+  shared: int("shared").notNull().default(0), // 0 or 1
+  
+  // Badge/reward
+  badgeEarned: varchar("badgeEarned", { length: 100 }), // e.g., "streak_7_day"
+  coinReward: int("coinReward").notNull().default(0),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type StreakMilestone = typeof streakMilestones.$inferSelect;
+export type InsertStreakMilestone = typeof streakMilestones.$inferInsert;

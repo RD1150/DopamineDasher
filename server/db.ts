@@ -1,7 +1,8 @@
 import { eq, and, desc, or, gte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, userProfiles, InsertUserProfile, tasks, InsertTask, journalEntries, InsertJournalEntry, dailyAffirmations, InsertDailyAffirmation, habits, InsertHabit, habitCompletions, InsertHabitCompletion, moodEntries, InsertMoodEntry, userStats, InsertUserStats, leaderboardEntries, InsertLeaderboardEntry, contests, InsertContest, contestParticipation, InsertContestParticipation, rewards, InsertReward, userRewards, InsertUserReward, dailyCheckIns, InsertDailyCheckIn, termsVersions, InsertTermsVersion, userTermsAcceptance, InsertUserTermsAcceptance, emailVerificationCodes, InsertEmailVerificationCode, nervousSystemStates, InsertNervousSystemState, decisionTreeSessions, InsertDecisionTreeSession, characterPicks, InsertCharacterPick, weeklyCharacterPicks, InsertWeeklyCharacterPick } from "../drizzle/schema";
+import { InsertUser, users, userProfiles, InsertUserProfile, tasks, InsertTask, journalEntries, InsertJournalEntry, dailyAffirmations, InsertDailyAffirmation, habits, InsertHabit, habitCompletions, InsertHabitCompletion, moodEntries, InsertMoodEntry, userStats, InsertUserStats, leaderboardEntries, InsertLeaderboardEntry, contests, InsertContest, contestParticipation, InsertContestParticipation, rewards, InsertReward, userRewards, InsertUserReward, dailyCheckIns, InsertDailyCheckIn, termsVersions, InsertTermsVersion, userTermsAcceptance, InsertUserTermsAcceptance, emailVerificationCodes, InsertEmailVerificationCode, nervousSystemStates, InsertNervousSystemState, decisionTreeSessions, InsertDecisionTreeSession, characterPicks, InsertCharacterPick, weeklyCharacterPicks, InsertWeeklyCharacterPick, analyticsEvents, InsertAnalyticsEvent, notificationABTests, InsertNotificationABTest, streakMilestones, InsertStreakMilestone } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { eq, and, gte, lte, desc } from 'drizzle-orm';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -1432,5 +1433,246 @@ export async function getUserReferralStats(userId: number) {
   } catch (error) {
     console.error("[Database] Error getting referral stats:", error);
     return null;
+  }
+}
+
+
+// Analytics functions
+export async function trackAnalyticsEvent(userId: number, eventType: string, metadata?: Record<string, any>) {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    await db.insert(analyticsEvents).values({
+      userId,
+      eventType: eventType as any,
+      metadata: metadata || {},
+      date: today,
+    });
+  } catch (error) {
+    console.error("[Database] Error tracking analytics event:", error);
+  }
+}
+
+export async function getAnalyticsSummary(userId: number, days: number = 30) {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const startDateStr = startDate.toISOString().split('T')[0];
+
+    const events = await db
+      .select()
+      .from(analyticsEvents)
+      .where(
+        and(
+          eq(analyticsEvents.userId, userId),
+          gte(analyticsEvents.date, startDateStr)
+        )
+      );
+
+    const signups = events.filter(e => e.eventType === 'signup').length;
+    const onboardingCompletes = events.filter(e => e.eventType === 'onboarding_complete').length;
+    const taskCompletes = events.filter(e => e.eventType === 'task_complete').length;
+    const premiumUpgrades = events.filter(e => e.eventType === 'premium_upgrade').length;
+
+    return {
+      totalEvents: events.length,
+      signups,
+      onboardingCompletes,
+      taskCompletes,
+      premiumUpgrades,
+      eventsByDay: events.reduce((acc, event) => {
+        acc[event.date] = (acc[event.date] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+    };
+  } catch (error) {
+    console.error("[Database] Error getting analytics summary:", error);
+    return null;
+  }
+}
+
+// Notification A/B Test functions
+export async function assignNotificationVariant(userId: number, testId: string): Promise<'control' | 'variant_a' | 'variant_b'> {
+  // Simple assignment based on user ID hash
+  const hash = userId % 3;
+  if (hash === 0) return 'control';
+  if (hash === 1) return 'variant_a';
+  return 'variant_b';
+}
+
+export async function trackNotificationSent(
+  userId: number,
+  testId: string,
+  variant: 'control' | 'variant_a' | 'variant_b',
+  message: string
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    await db.insert(notificationABTests).values({
+      userId,
+      testId,
+      variant,
+      message,
+    });
+  } catch (error) {
+    console.error("[Database] Error tracking notification:", error);
+  }
+}
+
+export async function trackNotificationEngagement(
+  userId: number,
+  testId: string,
+  engagement: 'clicked' | 'dismissed',
+  taskCompletedAfter: boolean = false
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    const updates: any = {};
+    if (engagement === 'clicked') {
+      updates.clicked = 1;
+      updates.clickedAt = new Date();
+    } else if (engagement === 'dismissed') {
+      updates.dismissed = 1;
+    }
+    if (taskCompletedAfter) {
+      updates.taskCompletedAfter = 1;
+    }
+
+    await db
+      .update(notificationABTests)
+      .set(updates)
+      .where(
+        and(
+          eq(notificationABTests.userId, userId),
+          eq(notificationABTests.testId, testId)
+        )
+      );
+  } catch (error) {
+    console.error("[Database] Error tracking notification engagement:", error);
+  }
+}
+
+export async function getNotificationABTestResults(testId: string) {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    const results = await db
+      .select()
+      .from(notificationABTests)
+      .where(eq(notificationABTests.testId, testId));
+
+    const byVariant = {
+      control: results.filter(r => r.variant === 'control'),
+      variant_a: results.filter(r => r.variant === 'variant_a'),
+      variant_b: results.filter(r => r.variant === 'variant_b'),
+    };
+
+    const calculateMetrics = (variant: any[]) => ({
+      sent: variant.length,
+      clicked: variant.filter(r => r.clicked).length,
+      dismissed: variant.filter(r => r.dismissed).length,
+      taskCompleted: variant.filter(r => r.taskCompletedAfter).length,
+      clickRate: variant.length > 0 ? (variant.filter(r => r.clicked).length / variant.length) * 100 : 0,
+      conversionRate: variant.length > 0 ? (variant.filter(r => r.taskCompletedAfter).length / variant.length) * 100 : 0,
+    });
+
+    return {
+      control: calculateMetrics(byVariant.control),
+      variant_a: calculateMetrics(byVariant.variant_a),
+      variant_b: calculateMetrics(byVariant.variant_b),
+    };
+  } catch (error) {
+    console.error("[Database] Error getting A/B test results:", error);
+    return null;
+  }
+}
+
+// Streak Milestone functions
+export async function recordStreakMilestone(
+  userId: number,
+  streakDays: number,
+  coinReward: number = 0
+) {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    let milestoneType: 'seven_day' | 'thirty_day' | 'hundred_day' | 'custom' = 'custom';
+    if (streakDays === 7) milestoneType = 'seven_day';
+    else if (streakDays === 30) milestoneType = 'thirty_day';
+    else if (streakDays === 100) milestoneType = 'hundred_day';
+
+    const badgeMap: Record<number, string> = {
+      7: 'streak_7_day',
+      30: 'streak_30_day',
+      100: 'streak_100_day',
+    };
+
+    await db.insert(streakMilestones).values({
+      userId,
+      streakDays,
+      milestoneType,
+      achievedAt: new Date(),
+      badgeEarned: badgeMap[streakDays] || `streak_${streakDays}_day`,
+      coinReward,
+    });
+  } catch (error) {
+    console.error("[Database] Error recording streak milestone:", error);
+  }
+}
+
+export async function getStreakMilestones(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    const milestones = await db
+      .select()
+      .from(streakMilestones)
+      .where(eq(streakMilestones.userId, userId))
+      .orderBy(desc(streakMilestones.achievedAt));
+
+    return milestones;
+  } catch (error) {
+    console.error("[Database] Error getting streak milestones:", error);
+    return [];
+  }
+}
+
+export async function markMilestoneAsShown(milestoneId: number) {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    await db
+      .update(streakMilestones)
+      .set({ celebrationShown: 1 })
+      .where(eq(streakMilestones.id, milestoneId));
+  } catch (error) {
+    console.error("[Database] Error marking milestone as shown:", error);
+  }
+}
+
+export async function markMilestoneAsShared(milestoneId: number) {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    await db
+      .update(streakMilestones)
+      .set({ shared: 1 })
+      .where(eq(streakMilestones.id, milestoneId));
+  } catch (error) {
+    console.error("[Database] Error marking milestone as shared:", error);
   }
 }

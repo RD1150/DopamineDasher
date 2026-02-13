@@ -12,6 +12,7 @@ var __export = (target, all) => {
 var schema_exports = {};
 __export(schema_exports, {
   abTestVariants: () => abTestVariants,
+  analyticsEvents: () => analyticsEvents,
   autoDashSuggestions: () => autoDashSuggestions,
   characterPicks: () => characterPicks,
   coachConversations: () => coachConversations,
@@ -29,10 +30,12 @@ __export(schema_exports, {
   leaderboardEntries: () => leaderboardEntries,
   moodEntries: () => moodEntries,
   nervousSystemStates: () => nervousSystemStates,
+  notificationABTests: () => notificationABTests,
   premiumPreferences: () => premiumPreferences,
   referrals: () => referrals,
   retentionMetrics: () => retentionMetrics,
   rewards: () => rewards,
+  streakMilestones: () => streakMilestones,
   subscriptions: () => subscriptions,
   tasks: () => tasks,
   techniqueRatings: () => techniqueRatings,
@@ -47,7 +50,7 @@ __export(schema_exports, {
   weeklyCharacterPicks: () => weeklyCharacterPicks
 });
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, json, decimal } from "drizzle-orm/mysql-core";
-var users, userProfiles, tasks, journalEntries, dailyAffirmations, habits, habitCompletions, moodEntries, userStats, leaderboardEntries, contests, contestParticipation, rewards, userRewards, dailyCheckIns, termsVersions, userTermsAcceptance, emailVerificationCodes, nervousSystemStates, decisionTreeSessions, characterPicks, weeklyCharacterPicks, feedbacks, coachConversations, userTechniqueEffectiveness, abTestVariants, retentionMetrics, techniqueRatings, coinPurchases, referrals, subscriptions, premiumPreferences, autoDashSuggestions, upsellPrompts;
+var users, userProfiles, tasks, journalEntries, dailyAffirmations, habits, habitCompletions, moodEntries, userStats, leaderboardEntries, contests, contestParticipation, rewards, userRewards, dailyCheckIns, termsVersions, userTermsAcceptance, emailVerificationCodes, nervousSystemStates, decisionTreeSessions, characterPicks, weeklyCharacterPicks, feedbacks, coachConversations, userTechniqueEffectiveness, abTestVariants, retentionMetrics, techniqueRatings, coinPurchases, referrals, subscriptions, premiumPreferences, autoDashSuggestions, upsellPrompts, analyticsEvents, notificationABTests, streakMilestones;
 var init_schema = __esm({
   "drizzle/schema.ts"() {
     "use strict";
@@ -585,6 +588,68 @@ var init_schema = __esm({
       createdAt: timestamp("createdAt").defaultNow().notNull(),
       updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull()
     });
+    analyticsEvents = mysqlTable("analyticsEvents", {
+      id: int("id").autoincrement().primaryKey(),
+      userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+      // Event type
+      eventType: mysqlEnum("eventType", [
+        "signup",
+        "onboarding_complete",
+        "first_task_complete",
+        "task_complete",
+        "streak_milestone",
+        "premium_upgrade",
+        "notification_sent",
+        "notification_clicked",
+        "session_start",
+        "session_end"
+      ]).notNull(),
+      // Event metadata
+      metadata: json("metadata").$type(),
+      // Timestamps
+      date: varchar("date", { length: 10 }).notNull(),
+      // YYYY-MM-DD
+      createdAt: timestamp("createdAt").defaultNow().notNull()
+    });
+    notificationABTests = mysqlTable("notificationABTests", {
+      id: int("id").autoincrement().primaryKey(),
+      userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+      // Test variant assignment
+      testId: varchar("testId", { length: 100 }).notNull(),
+      // e.g., "reminder_messaging_v1"
+      variant: mysqlEnum("variant", ["control", "variant_a", "variant_b"]).notNull(),
+      // Notification details
+      message: text("message").notNull(),
+      sentAt: timestamp("sentAt").defaultNow().notNull(),
+      // Engagement tracking
+      delivered: int("delivered").notNull().default(0),
+      clicked: int("clicked").notNull().default(0),
+      dismissed: int("dismissed").notNull().default(0),
+      clickedAt: timestamp("clickedAt"),
+      // Outcome
+      taskCompletedAfter: int("taskCompletedAfter").notNull().default(0),
+      // 0 or 1
+      createdAt: timestamp("createdAt").defaultNow().notNull()
+    });
+    streakMilestones = mysqlTable("streakMilestones", {
+      id: int("id").autoincrement().primaryKey(),
+      userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+      // Milestone details
+      streakDays: int("streakDays").notNull(),
+      // 7, 30, 100, etc.
+      milestoneType: mysqlEnum("milestoneType", ["seven_day", "thirty_day", "hundred_day", "custom"]).notNull(),
+      // Achievement details
+      achievedAt: timestamp("achievedAt").notNull(),
+      celebrationShown: int("celebrationShown").notNull().default(0),
+      // 0 or 1
+      shared: int("shared").notNull().default(0),
+      // 0 or 1
+      // Badge/reward
+      badgeEarned: varchar("badgeEarned", { length: 100 }),
+      // e.g., "streak_7_day"
+      coinReward: int("coinReward").notNull().default(0),
+      createdAt: timestamp("createdAt").defaultNow().notNull()
+    });
   }
 });
 
@@ -610,6 +675,7 @@ var init_env = __esm({
 var db_exports = {};
 __export(db_exports, {
   addCoinsToUser: () => addCoinsToUser,
+  assignNotificationVariant: () => assignNotificationVariant,
   awardReferralBonus: () => awardReferralBonus,
   completeHabit: () => completeHabit,
   createCharacterPick: () => createCharacterPick,
@@ -632,6 +698,7 @@ __export(db_exports, {
   getActiveContests: () => getActiveContests,
   getAllFeedback: () => getAllFeedback,
   getAllRewards: () => getAllRewards,
+  getAnalyticsSummary: () => getAnalyticsSummary,
   getCharacterPickHistory: () => getCharacterPickHistory,
   getCheckInHistory: () => getCheckInHistory,
   getCoachConversationHistory: () => getCoachConversationHistory,
@@ -646,9 +713,11 @@ __export(db_exports, {
   getLatestTermsVersion: () => getLatestTermsVersion,
   getLatestVerifiedEmail: () => getLatestVerifiedEmail,
   getMoodHistory: () => getMoodHistory,
+  getNotificationABTestResults: () => getNotificationABTestResults,
   getReferralByCode: () => getReferralByCode,
   getRetentionCohort: () => getRetentionCohort,
   getStatsHistory: () => getStatsHistory,
+  getStreakMilestones: () => getStreakMilestones,
   getTasksByActivationEnergy: () => getTasksByActivationEnergy,
   getTasksBySequenceGroup: () => getTasksBySequenceGroup,
   getTasksByState: () => getTasksByState,
@@ -672,13 +741,19 @@ __export(db_exports, {
   getUserTasks: () => getUserTasks,
   getWeeklyCharacterPick: () => getWeeklyCharacterPick,
   hasUserAcceptedTermsVersion: () => hasUserAcceptedTermsVersion,
+  markMilestoneAsShared: () => markMilestoneAsShared,
+  markMilestoneAsShown: () => markMilestoneAsShown,
   purchaseReward: () => purchaseReward,
   recordNervousSystemState: () => recordNervousSystemState,
+  recordStreakMilestone: () => recordStreakMilestone,
   recordTechniqueFeedback: () => recordTechniqueFeedback,
   recordTermsAcceptance: () => recordTermsAcceptance,
   recordUserSession: () => recordUserSession,
   storeCoachConversation: () => storeCoachConversation,
   submitFeedback: () => submitFeedback,
+  trackAnalyticsEvent: () => trackAnalyticsEvent,
+  trackNotificationEngagement: () => trackNotificationEngagement,
+  trackNotificationSent: () => trackNotificationSent,
   updateCoinPurchaseStatus: () => updateCoinPurchaseStatus,
   updateContestProgress: () => updateContestProgress,
   updateHabit: () => updateHabit,
@@ -690,8 +765,8 @@ __export(db_exports, {
   upsertUser: () => upsertUser,
   verifyEmailCode: () => verifyEmailCode
 });
-import { eq, and, desc, gte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import { eq, and, gte, desc } from "drizzle-orm";
 async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -1288,7 +1363,7 @@ async function getRetentionCohort(days) {
   const db = await getDb();
   if (!db) return [];
   const { users: users2, userProfiles: userProfiles2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-  const { eq: eq3, gte: gte2, lte, and: and2, sql } = await import("drizzle-orm");
+  const { eq: eq3, gte: gte2, lte: lte2, and: and2, sql } = await import("drizzle-orm");
   const cutoffDate = /* @__PURE__ */ new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
   const cohort = await db.select({
@@ -1299,7 +1374,7 @@ async function getRetentionCohort(days) {
     isActive: sql`${userProfiles2.lastActiveDate} IS NOT NULL`
   }).from(users2).innerJoin(userProfiles2, eq3(users2.id, userProfiles2.userId)).where(and2(
     gte2(users2.createdAt, cutoffDate),
-    lte(users2.createdAt, /* @__PURE__ */ new Date())
+    lte2(users2.createdAt, /* @__PURE__ */ new Date())
   ));
   return cohort;
 }
@@ -1588,6 +1663,180 @@ async function getUserReferralStats(userId) {
   } catch (error) {
     console.error("[Database] Error getting referral stats:", error);
     return null;
+  }
+}
+async function trackAnalyticsEvent(userId, eventType, metadata) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    await db.insert(analyticsEvents).values({
+      userId,
+      eventType,
+      metadata: metadata || {},
+      date: today
+    });
+  } catch (error) {
+    console.error("[Database] Error tracking analytics event:", error);
+  }
+}
+async function getAnalyticsSummary(userId, days = 30) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const startDate = /* @__PURE__ */ new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const startDateStr = startDate.toISOString().split("T")[0];
+    const events = await db.select().from(analyticsEvents).where(
+      and(
+        eq(analyticsEvents.userId, userId),
+        gte(analyticsEvents.date, startDateStr)
+      )
+    );
+    const signups = events.filter((e) => e.eventType === "signup").length;
+    const onboardingCompletes = events.filter((e) => e.eventType === "onboarding_complete").length;
+    const taskCompletes = events.filter((e) => e.eventType === "task_complete").length;
+    const premiumUpgrades = events.filter((e) => e.eventType === "premium_upgrade").length;
+    return {
+      totalEvents: events.length,
+      signups,
+      onboardingCompletes,
+      taskCompletes,
+      premiumUpgrades,
+      eventsByDay: events.reduce((acc, event) => {
+        acc[event.date] = (acc[event.date] || 0) + 1;
+        return acc;
+      }, {})
+    };
+  } catch (error) {
+    console.error("[Database] Error getting analytics summary:", error);
+    return null;
+  }
+}
+async function assignNotificationVariant(userId, testId) {
+  const hash = userId % 3;
+  if (hash === 0) return "control";
+  if (hash === 1) return "variant_a";
+  return "variant_b";
+}
+async function trackNotificationSent(userId, testId, variant, message) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.insert(notificationABTests).values({
+      userId,
+      testId,
+      variant,
+      message
+    });
+  } catch (error) {
+    console.error("[Database] Error tracking notification:", error);
+  }
+}
+async function trackNotificationEngagement(userId, testId, engagement, taskCompletedAfter = false) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    const updates = {};
+    if (engagement === "clicked") {
+      updates.clicked = 1;
+      updates.clickedAt = /* @__PURE__ */ new Date();
+    } else if (engagement === "dismissed") {
+      updates.dismissed = 1;
+    }
+    if (taskCompletedAfter) {
+      updates.taskCompletedAfter = 1;
+    }
+    await db.update(notificationABTests).set(updates).where(
+      and(
+        eq(notificationABTests.userId, userId),
+        eq(notificationABTests.testId, testId)
+      )
+    );
+  } catch (error) {
+    console.error("[Database] Error tracking notification engagement:", error);
+  }
+}
+async function getNotificationABTestResults(testId) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const results = await db.select().from(notificationABTests).where(eq(notificationABTests.testId, testId));
+    const byVariant = {
+      control: results.filter((r) => r.variant === "control"),
+      variant_a: results.filter((r) => r.variant === "variant_a"),
+      variant_b: results.filter((r) => r.variant === "variant_b")
+    };
+    const calculateMetrics = (variant) => ({
+      sent: variant.length,
+      clicked: variant.filter((r) => r.clicked).length,
+      dismissed: variant.filter((r) => r.dismissed).length,
+      taskCompleted: variant.filter((r) => r.taskCompletedAfter).length,
+      clickRate: variant.length > 0 ? variant.filter((r) => r.clicked).length / variant.length * 100 : 0,
+      conversionRate: variant.length > 0 ? variant.filter((r) => r.taskCompletedAfter).length / variant.length * 100 : 0
+    });
+    return {
+      control: calculateMetrics(byVariant.control),
+      variant_a: calculateMetrics(byVariant.variant_a),
+      variant_b: calculateMetrics(byVariant.variant_b)
+    };
+  } catch (error) {
+    console.error("[Database] Error getting A/B test results:", error);
+    return null;
+  }
+}
+async function recordStreakMilestone(userId, streakDays, coinReward = 0) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    let milestoneType = "custom";
+    if (streakDays === 7) milestoneType = "seven_day";
+    else if (streakDays === 30) milestoneType = "thirty_day";
+    else if (streakDays === 100) milestoneType = "hundred_day";
+    const badgeMap = {
+      7: "streak_7_day",
+      30: "streak_30_day",
+      100: "streak_100_day"
+    };
+    await db.insert(streakMilestones).values({
+      userId,
+      streakDays,
+      milestoneType,
+      achievedAt: /* @__PURE__ */ new Date(),
+      badgeEarned: badgeMap[streakDays] || `streak_${streakDays}_day`,
+      coinReward
+    });
+  } catch (error) {
+    console.error("[Database] Error recording streak milestone:", error);
+  }
+}
+async function getStreakMilestones(userId) {
+  const db = await getDb();
+  if (!db) return [];
+  try {
+    const milestones = await db.select().from(streakMilestones).where(eq(streakMilestones.userId, userId)).orderBy(desc(streakMilestones.achievedAt));
+    return milestones;
+  } catch (error) {
+    console.error("[Database] Error getting streak milestones:", error);
+    return [];
+  }
+}
+async function markMilestoneAsShown(milestoneId) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.update(streakMilestones).set({ celebrationShown: 1 }).where(eq(streakMilestones.id, milestoneId));
+  } catch (error) {
+    console.error("[Database] Error marking milestone as shown:", error);
+  }
+}
+async function markMilestoneAsShared(milestoneId) {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.update(streakMilestones).set({ shared: 1 }).where(eq(streakMilestones.id, milestoneId));
+  } catch (error) {
+    console.error("[Database] Error marking milestone as shared:", error);
   }
 }
 var _db;
@@ -2050,7 +2299,7 @@ var systemRouter = router({
 
 // server/routers.ts
 init_db();
-import { z as z8 } from "zod";
+import { z as z9 } from "zod";
 import Stripe2 from "stripe";
 
 // shared/products.ts
@@ -3486,6 +3735,81 @@ var paymentsRouter = router({
   })
 });
 
+// server/analyticsRouter.ts
+init_db();
+import { z as z8 } from "zod";
+var analyticsRouter = router({
+  // Track analytics events
+  trackEvent: protectedProcedure.input(
+    z8.object({
+      eventType: z8.string(),
+      metadata: z8.record(z8.any()).optional()
+    })
+  ).mutation(async ({ input, ctx }) => {
+    await trackAnalyticsEvent(ctx.user.id, input.eventType, input.metadata);
+    return { success: true };
+  }),
+  // Get analytics summary for current user
+  getSummary: protectedProcedure.input(z8.object({ days: z8.number().default(30) })).query(async ({ input, ctx }) => {
+    const summary = await getAnalyticsSummary(ctx.user.id, input.days);
+    return summary;
+  }),
+  // Notification A/B Testing
+  getNotificationVariant: protectedProcedure.input(z8.object({ testId: z8.string() })).query(async ({ input, ctx }) => {
+    const variant = await assignNotificationVariant(ctx.user.id, input.testId);
+    return { variant };
+  }),
+  sendNotification: protectedProcedure.input(
+    z8.object({
+      testId: z8.string(),
+      variant: z8.enum(["control", "variant_a", "variant_b"]),
+      message: z8.string()
+    })
+  ).mutation(async ({ input, ctx }) => {
+    await trackNotificationSent(ctx.user.id, input.testId, input.variant, input.message);
+    return { success: true };
+  }),
+  trackNotificationClick: protectedProcedure.input(
+    z8.object({
+      testId: z8.string(),
+      taskCompletedAfter: z8.boolean().optional()
+    })
+  ).mutation(async ({ input, ctx }) => {
+    await trackNotificationEngagement(ctx.user.id, input.testId, "clicked", input.taskCompletedAfter);
+    return { success: true };
+  }),
+  trackNotificationDismiss: protectedProcedure.input(z8.object({ testId: z8.string() })).mutation(async ({ input, ctx }) => {
+    await trackNotificationEngagement(ctx.user.id, input.testId, "dismissed");
+    return { success: true };
+  }),
+  getABTestResults: protectedProcedure.input(z8.object({ testId: z8.string() })).query(async ({ input }) => {
+    const results = await getNotificationABTestResults(input.testId);
+    return results;
+  }),
+  // Streak Milestones
+  recordMilestone: protectedProcedure.input(
+    z8.object({
+      streakDays: z8.number(),
+      coinReward: z8.number().optional()
+    })
+  ).mutation(async ({ input, ctx }) => {
+    await recordStreakMilestone(ctx.user.id, input.streakDays, input.coinReward || 0);
+    return { success: true };
+  }),
+  getMilestones: protectedProcedure.query(async ({ ctx }) => {
+    const milestones = await getStreakMilestones(ctx.user.id);
+    return milestones;
+  }),
+  markMilestoneShown: protectedProcedure.input(z8.object({ milestoneId: z8.number() })).mutation(async ({ input }) => {
+    await markMilestoneAsShown(input.milestoneId);
+    return { success: true };
+  }),
+  markMilestoneShared: protectedProcedure.input(z8.object({ milestoneId: z8.number() })).mutation(async ({ input }) => {
+    await markMilestoneAsShared(input.milestoneId);
+    return { success: true };
+  })
+});
+
 // server/routers.ts
 var stripe2 = new Stripe2(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-12-15.clover"
@@ -3523,26 +3847,26 @@ var appRouter = router({
       }
       return profile;
     }),
-    update: protectedProcedure.input(z8.object({
-      xp: z8.number().optional(),
-      level: z8.number().optional(),
-      coins: z8.number().optional(),
-      currentStreak: z8.number().optional(),
-      longestStreak: z8.number().optional(),
-      lastActiveDate: z8.string().optional(),
-      vacationModeActive: z8.number().optional(),
-      vacationModeStartDate: z8.string().optional(),
-      hasCompletedOnboarding: z8.number().optional(),
-      selectedFlavor: z8.string().optional(),
-      selectedContext: z8.string().optional(),
-      selectedTheme: z8.string().optional(),
-      mascotMood: z8.string().optional(),
-      lastPetTime: z8.date().optional(),
-      lastFeedTime: z8.date().optional(),
-      purchasedItems: z8.array(z8.string()).optional(),
-      equippedAccessories: z8.array(z8.string()).optional(),
-      soundEnabled: z8.number().optional(),
-      soundTheme: z8.string().optional()
+    update: protectedProcedure.input(z9.object({
+      xp: z9.number().optional(),
+      level: z9.number().optional(),
+      coins: z9.number().optional(),
+      currentStreak: z9.number().optional(),
+      longestStreak: z9.number().optional(),
+      lastActiveDate: z9.string().optional(),
+      vacationModeActive: z9.number().optional(),
+      vacationModeStartDate: z9.string().optional(),
+      hasCompletedOnboarding: z9.number().optional(),
+      selectedFlavor: z9.string().optional(),
+      selectedContext: z9.string().optional(),
+      selectedTheme: z9.string().optional(),
+      mascotMood: z9.string().optional(),
+      lastPetTime: z9.date().optional(),
+      lastFeedTime: z9.date().optional(),
+      purchasedItems: z9.array(z9.string()).optional(),
+      equippedAccessories: z9.array(z9.string()).optional(),
+      soundEnabled: z9.number().optional(),
+      soundTheme: z9.string().optional()
     })).mutation(async ({ ctx, input }) => {
       await updateUserProfile(ctx.user.id, input);
       return { success: true };
@@ -3550,25 +3874,25 @@ var appRouter = router({
   }),
   // Task procedures
   tasks: router({
-    list: protectedProcedure.input(z8.object({
-      completed: z8.boolean().optional()
+    list: protectedProcedure.input(z9.object({
+      completed: z9.boolean().optional()
     }).optional()).query(async ({ ctx, input }) => {
       return await getUserTasks(ctx.user.id, input?.completed);
     }),
-    create: protectedProcedure.input(z8.object({
-      title: z8.string(),
-      type: z8.enum(["quick", "boss"]),
-      category: z8.string().optional(),
-      durationMinutes: z8.number().default(5),
-      sequenceGroup: z8.string().optional(),
-      sequenceOrder: z8.number().optional(),
-      subtasks: z8.array(z8.object({
-        id: z8.string(),
-        text: z8.string(),
-        completed: z8.boolean()
+    create: protectedProcedure.input(z9.object({
+      title: z9.string(),
+      type: z9.enum(["quick", "boss"]),
+      category: z9.string().optional(),
+      durationMinutes: z9.number().default(5),
+      sequenceGroup: z9.string().optional(),
+      sequenceOrder: z9.number().optional(),
+      subtasks: z9.array(z9.object({
+        id: z9.string(),
+        text: z9.string(),
+        completed: z9.boolean()
       })).optional(),
-      xpReward: z8.number().default(10),
-      coinReward: z8.number().default(5)
+      xpReward: z9.number().default(10),
+      coinReward: z9.number().default(5)
     })).mutation(async ({ ctx, input }) => {
       await createTask({
         userId: ctx.user.id,
@@ -3577,24 +3901,24 @@ var appRouter = router({
       });
       return { success: true };
     }),
-    update: protectedProcedure.input(z8.object({
-      id: z8.number(),
-      title: z8.string().optional(),
-      durationMinutes: z8.number().optional(),
-      subtasks: z8.array(z8.object({
-        id: z8.string(),
-        text: z8.string(),
-        completed: z8.boolean()
+    update: protectedProcedure.input(z9.object({
+      id: z9.number(),
+      title: z9.string().optional(),
+      durationMinutes: z9.number().optional(),
+      subtasks: z9.array(z9.object({
+        id: z9.string(),
+        text: z9.string(),
+        completed: z9.boolean()
       })).optional(),
-      completed: z8.number().optional(),
-      completedAt: z8.date().optional()
+      completed: z9.number().optional(),
+      completedAt: z9.date().optional()
     })).mutation(async ({ ctx, input }) => {
       const { id, ...updates } = input;
       await updateTask(id, ctx.user.id, updates);
       return { success: true };
     }),
-    delete: protectedProcedure.input(z8.object({
-      id: z8.number()
+    delete: protectedProcedure.input(z9.object({
+      id: z9.number()
     })).mutation(async ({ ctx, input }) => {
       await deleteTask(input.id, ctx.user.id);
       return { success: true };
@@ -3605,13 +3929,13 @@ var appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return await getUserJournalEntries(ctx.user.id);
     }),
-    create: protectedProcedure.input(z8.object({
-      taskTitle: z8.string(),
-      taskType: z8.string(),
-      xpEarned: z8.number(),
-      coinEarned: z8.number(),
-      completedAt: z8.date(),
-      date: z8.string()
+    create: protectedProcedure.input(z9.object({
+      taskTitle: z9.string(),
+      taskType: z9.string(),
+      xpEarned: z9.number(),
+      coinEarned: z9.number(),
+      completedAt: z9.date(),
+      date: z9.string()
     })).mutation(async ({ ctx, input }) => {
       await createJournalEntry({
         userId: ctx.user.id,
@@ -3622,14 +3946,14 @@ var appRouter = router({
   }),
   // Daily Affirmation procedures
   affirmation: router({
-    getToday: protectedProcedure.input(z8.object({
-      date: z8.string()
+    getToday: protectedProcedure.input(z9.object({
+      date: z9.string()
     })).query(async ({ ctx, input }) => {
       return await getTodayAffirmation(ctx.user.id, input.date);
     }),
-    create: protectedProcedure.input(z8.object({
-      message: z8.string(),
-      shownDate: z8.string()
+    create: protectedProcedure.input(z9.object({
+      message: z9.string(),
+      shownDate: z9.string()
     })).mutation(async ({ ctx, input }) => {
       await createDailyAffirmation({
         userId: ctx.user.id,
@@ -3643,11 +3967,11 @@ var appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return await getUserHabits(ctx.user.id);
     }),
-    create: protectedProcedure.input(z8.object({
-      name: z8.string(),
-      description: z8.string().optional(),
-      frequency: z8.enum(["daily", "weekly", "custom"]).default("daily"),
-      targetCount: z8.number().default(1)
+    create: protectedProcedure.input(z9.object({
+      name: z9.string(),
+      description: z9.string().optional(),
+      frequency: z9.enum(["daily", "weekly", "custom"]).default("daily"),
+      targetCount: z9.number().default(1)
     })).mutation(async ({ ctx, input }) => {
       const result = await createHabit({
         userId: ctx.user.id,
@@ -3655,24 +3979,24 @@ var appRouter = router({
       });
       return { success: true };
     }),
-    complete: protectedProcedure.input(z8.object({
-      habitId: z8.number()
+    complete: protectedProcedure.input(z9.object({
+      habitId: z9.number()
     })).mutation(async ({ ctx, input }) => {
       return await completeHabit(input.habitId, ctx.user.id);
     }),
-    getCompletions: protectedProcedure.input(z8.object({
-      habitId: z8.number(),
-      days: z8.number().default(30)
+    getCompletions: protectedProcedure.input(z9.object({
+      habitId: z9.number(),
+      days: z9.number().default(30)
     })).query(async ({ ctx, input }) => {
       return await getHabitCompletions(input.habitId, ctx.user.id, input.days);
     })
   }),
   // Mood procedures
   mood: router({
-    checkIn: protectedProcedure.input(z8.object({
-      moodLevel: z8.number().min(1).max(5),
-      energyLevel: z8.enum(["low", "medium", "high"]),
-      notes: z8.string().optional()
+    checkIn: protectedProcedure.input(z9.object({
+      moodLevel: z9.number().min(1).max(5),
+      energyLevel: z9.enum(["low", "medium", "high"]),
+      notes: z9.string().optional()
     })).mutation(async ({ ctx, input }) => {
       const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
       await createMoodEntry({
@@ -3685,21 +4009,21 @@ var appRouter = router({
     getToday: protectedProcedure.query(async ({ ctx }) => {
       return await getTodayMoodEntry(ctx.user.id);
     }),
-    getHistory: protectedProcedure.input(z8.object({
-      days: z8.number().default(30)
+    getHistory: protectedProcedure.input(z9.object({
+      days: z9.number().default(30)
     })).query(async ({ ctx, input }) => {
       return await getMoodHistory(ctx.user.id, input.days);
     })
   }),
   // Analytics procedures
   analytics: router({
-    getStats: protectedProcedure.input(z8.object({
-      date: z8.string()
+    getStats: protectedProcedure.input(z9.object({
+      date: z9.string()
     })).query(async ({ ctx, input }) => {
       return await getUserStats(ctx.user.id, input.date);
     }),
-    getHistory: protectedProcedure.input(z8.object({
-      days: z8.number().default(30)
+    getHistory: protectedProcedure.input(z9.object({
+      days: z9.number().default(30)
     })).query(async ({ ctx, input }) => {
       return await getStatsHistory(ctx.user.id, input.days);
     })
@@ -3766,14 +4090,14 @@ var appRouter = router({
     getActiveContests: publicProcedure.query(async () => {
       return await getActiveContests();
     }),
-    getContestProgress: protectedProcedure.input(z8.object({ contestId: z8.number() })).query(async ({ ctx, input }) => {
+    getContestProgress: protectedProcedure.input(z9.object({ contestId: z9.number() })).query(async ({ ctx, input }) => {
       return await getUserContestProgress(ctx.user.id, input.contestId);
     }),
-    updateContestProgress: protectedProcedure.input(z8.object({ contestId: z8.number(), progress: z8.number() })).mutation(async ({ ctx, input }) => {
+    updateContestProgress: protectedProcedure.input(z9.object({ contestId: z9.number(), progress: z9.number() })).mutation(async ({ ctx, input }) => {
       await updateContestProgress(ctx.user.id, input.contestId, input.progress);
       return { success: true };
     }),
-    getContestLeaderboard: publicProcedure.input(z8.object({ contestId: z8.number() })).query(async ({ input }) => {
+    getContestLeaderboard: publicProcedure.input(z9.object({ contestId: z9.number() })).query(async ({ input }) => {
       return await getContestLeaderboard(input.contestId);
     }),
     // Rewards
@@ -3783,7 +4107,7 @@ var appRouter = router({
     getUserRewards: protectedProcedure.query(async ({ ctx }) => {
       return await getUserRewards(ctx.user.id);
     }),
-    purchaseReward: protectedProcedure.input(z8.object({ rewardId: z8.number() })).mutation(async ({ ctx, input }) => {
+    purchaseReward: protectedProcedure.input(z9.object({ rewardId: z9.number() })).mutation(async ({ ctx, input }) => {
       const profile = await getUserProfile(ctx.user.id);
       const reward = (await getAllRewards()).find((r) => r.id === input.rewardId);
       if (!reward) throw new Error("Reward not found");
@@ -3798,10 +4122,10 @@ var appRouter = router({
     getTodayCheckIn: protectedProcedure.query(async ({ ctx }) => {
       return await getTodayCheckIn(ctx.user.id);
     }),
-    createCheckIn: protectedProcedure.input(z8.object({
-      energyLevel: z8.enum(["low", "medium", "high"]),
-      vibe: z8.enum(["anxious", "bored", "overwhelmed", "energized"]),
-      need: z8.enum(["quick-wins", "deep-focus", "movement", "rest"])
+    createCheckIn: protectedProcedure.input(z9.object({
+      energyLevel: z9.enum(["low", "medium", "high"]),
+      vibe: z9.enum(["anxious", "bored", "overwhelmed", "energized"]),
+      need: z9.enum(["quick-wins", "deep-focus", "movement", "rest"])
     })).mutation(async ({ ctx, input }) => {
       const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
       await createDailyCheckIn({
@@ -3811,12 +4135,12 @@ var appRouter = router({
       });
       return { success: true };
     }),
-    getCheckInHistory: protectedProcedure.input(z8.object({ days: z8.number().default(30) })).query(async ({ ctx, input }) => {
+    getCheckInHistory: protectedProcedure.input(z9.object({ days: z9.number().default(30) })).query(async ({ ctx, input }) => {
       return await getCheckInHistory(ctx.user.id, input.days);
     })
   }),
   emailVerification: router({
-    sendVerificationCode: protectedProcedure.input(z8.object({ email: z8.string().email() })).mutation(async ({ ctx, input }) => {
+    sendVerificationCode: protectedProcedure.input(z9.object({ email: z9.string().email() })).mutation(async ({ ctx, input }) => {
       try {
         const code = await createEmailVerificationCode(ctx.user.id, input.email);
         console.log(`[Email Verification] Code for ${input.email}: ${code}`);
@@ -3829,7 +4153,7 @@ var appRouter = router({
         throw new Error("Failed to send verification code");
       }
     }),
-    verifyCode: protectedProcedure.input(z8.object({ code: z8.string().length(6) })).mutation(async ({ ctx, input }) => {
+    verifyCode: protectedProcedure.input(z9.object({ code: z9.string().length(6) })).mutation(async ({ ctx, input }) => {
       try {
         const verified = await verifyEmailCode(ctx.user.id, input.code);
         if (!verified) {
@@ -3865,7 +4189,7 @@ var appRouter = router({
         effectiveDate: termsVersion.effectiveDate
       };
     }),
-    acceptTerms: protectedProcedure.input(z8.object({ termsVersionId: z8.number() })).mutation(async ({ ctx, input }) => {
+    acceptTerms: protectedProcedure.input(z9.object({ termsVersionId: z9.number() })).mutation(async ({ ctx, input }) => {
       try {
         const ipAddress = ctx.req.headers["x-forwarded-for"] || ctx.req.socket.remoteAddress || void 0;
         await recordTermsAcceptance(ctx.user.id, input.termsVersionId, ipAddress);
@@ -3887,7 +4211,8 @@ var appRouter = router({
   feedback: feedbackRouter,
   retention: retentionRouter,
   coach: coachRouter,
-  payments: paymentsRouter
+  payments: paymentsRouter,
+  analytics: analyticsRouter
 });
 
 // server/_core/context.ts

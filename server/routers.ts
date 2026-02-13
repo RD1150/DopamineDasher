@@ -14,6 +14,7 @@ import { feedbackRouter } from "./feedbackRouter";
 import { retentionRouter } from "./retentionRouter";
 import { coachRouter } from "./coachRouter";
 import { paymentsRouter } from "./paymentsRouter";
+import { analyticsRouter } from "./analyticsRouter";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover',
@@ -526,6 +527,7 @@ export const appRouter = router({
   retention: retentionRouter,
   coach: coachRouter,
   payments: paymentsRouter,
+  analytics: analyticsRouter,
 });
 
 export type AppRouter = typeof appRouter;
