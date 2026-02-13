@@ -268,24 +268,7 @@ export const appRouter = router({
       }),
   }),
 
-  // Analytics procedures
-  analytics: router({
-    getStats: protectedProcedure
-      .input(z.object({
-        date: z.string(),
-      }))
-      .query(async ({ ctx, input }) => {
-        return await db.getUserStats(ctx.user.id, input.date);
-      }),
-
-    getHistory: protectedProcedure
-      .input(z.object({
-        days: z.number().default(30),
-      }))
-      .query(async ({ ctx, input }) => {
-        return await db.getStatsHistory(ctx.user.id, input.days);
-      }),
-  }),
+  // Analytics procedures - merged with new analytics router below
 
   // Stripe payment procedures
   stripe: router({

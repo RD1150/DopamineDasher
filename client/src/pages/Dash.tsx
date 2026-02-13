@@ -44,6 +44,8 @@ import BetaAccountGate from '@/components/BetaAccountGate';
 import DemoModeGate from '@/components/DemoModeGate';
 import DemoOnboarding from '@/components/DemoOnboarding';
 import { demoAnalytics } from '@/lib/demoAnalytics';
+import CalmOpening from '@/components/CalmOpening';
+import FreezeMode from '@/components/FreezeMode';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -136,6 +138,8 @@ export default function Dash() {
   const [tasksCompletedInSession, setTasksCompletedInSession] = useState(0);
   const [showBetaGate, setShowBetaGate] = useState(false);
   const totalTasksCompleted = useStore((state) => state.totalTasksCompleted);
+  const [showCalmOpening, setShowCalmOpening] = useState(true);
+  const [showFreezeMode, setShowFreezeMode] = useState(false);
   
   const handleMoodSelect = (mood: 'anxious' | 'bored' | 'overwhelmed' | 'energized') => {
     setSelectedMood(mood);
@@ -556,6 +560,20 @@ export default function Dash() {
 
   return (
     <Layout>
+      {/* Calm Opening - shows on first load */}
+      <AnimatePresence>
+        {showCalmOpening && (
+          <CalmOpening onComplete={() => setShowCalmOpening(false)} />
+        )}
+      </AnimatePresence>
+      
+      {/* Freeze Mode */}
+      <FreezeMode
+        isOpen={showFreezeMode}
+        onClose={() => setShowFreezeMode(false)}
+        onReady={() => setShowFreezeMode(false)}
+      />
+      
       <AffirmationOverlay />
       <TutorialOverlay />
       <BetaAccountGate 

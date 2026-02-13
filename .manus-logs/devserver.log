@@ -948,3 +948,8 @@
 [2026-02-13T07:45:40.403Z] 2:45:40 AM [tsx] change in ./server/routers.ts Restarting...
 [2026-02-13T07:45:41.713Z] c[OAuth] Initialized with baseURL: https://api.manus.im
 [2026-02-13T07:45:41.936Z] Server running on http://localhost:3000/
+[2026-02-13T08:46:26.472Z] 3:46:26 AM [vite] (client) hmr update /src/pages/Dash.tsx, /src/index.css
+[2026-02-13T08:47:10.944Z] 3:47:10 AM [vite] (client) hmr update /src/pages/Dash.tsx, /src/index.css
+[2026-02-13T08:47:49.811Z] 3:47:49 AM [tsx] change in ./server/routers.ts Restarting...
+[2026-02-13T08:47:51.451Z] c[OAuth] Initialized with baseURL: https://api.manus.im
+[2026-02-13T08:47:51.709Z] Server running on http://localhost:3000/

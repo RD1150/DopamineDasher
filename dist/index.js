@@ -4015,19 +4015,7 @@ var appRouter = router({
       return await getMoodHistory(ctx.user.id, input.days);
     })
   }),
-  // Analytics procedures
-  analytics: router({
-    getStats: protectedProcedure.input(z9.object({
-      date: z9.string()
-    })).query(async ({ ctx, input }) => {
-      return await getUserStats(ctx.user.id, input.date);
-    }),
-    getHistory: protectedProcedure.input(z9.object({
-      days: z9.number().default(30)
-    })).query(async ({ ctx, input }) => {
-      return await getStatsHistory(ctx.user.id, input.days);
-    })
-  }),
+  // Analytics procedures - merged with new analytics router below
   // Stripe payment procedures
   stripe: router({
     createCheckoutSession: protectedProcedure.mutation(async ({ ctx }) => {
