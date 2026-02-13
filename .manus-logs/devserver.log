@@ -955,3 +955,12 @@
 [2026-02-13T08:47:51.709Z] Server running on http://localhost:3000/
 [2026-02-13T19:33:50.572Z] 2:33:50 PM [vite] (client) hmr update /src/index.css, /src/components/CalmOpening.tsx
 [2026-02-13T19:46:55.581Z] 2:46:55 PM [vite] (client) hmr update /src/index.css, /src/components/CalmOpening.tsx
+[2026-02-13T23:19:10.796Z] Starting dev server with command: pnpm run dev
+[2026-02-13T23:19:11.429Z] 
+[2026-02-13T23:19:11.429Z] > dopamine_dasher@1.0.0 dev /home/ubuntu/dopamine_dasher
+[2026-02-13T23:19:11.430Z] > NODE_ENV=development tsx watch server/_core/index.ts
+[2026-02-13T23:19:11.430Z] 
+[2026-02-13T23:19:13.964Z] [OAuth] Initialized with baseURL: https://api.manus.im
+[2026-02-13T23:19:14.316Z] Server running on http://localhost:3000/
+[2026-02-13T23:21:40.272Z] 6:21:40 PM [vite] (client) hmr update /src/pages/Dash.tsx, /src/index.css
+[2026-02-13T23:22:08.699Z] 6:22:08 PM [vite] (client) hmr update /src/pages/Dash.tsx, /src/index.css

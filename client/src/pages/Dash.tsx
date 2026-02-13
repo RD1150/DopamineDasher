@@ -46,6 +46,7 @@ import DemoOnboarding from '@/components/DemoOnboarding';
 import { demoAnalytics } from '@/lib/demoAnalytics';
 import CalmOpening from '@/components/CalmOpening';
 import FreezeMode from '@/components/FreezeMode';
+import SimpleMusicToggle from '@/components/SimpleMusicToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1437,6 +1438,7 @@ export default function Dash() {
               <Volume2 className="w-4 h-4" />
               Focus Sounds
             </Button>
+            <SimpleMusicToggle />
             <Button
               variant="ghost"
               size="sm"
