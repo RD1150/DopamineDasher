@@ -578,7 +578,10 @@ export default function Dash() {
       
       {/* Dynamic Music Player */}
       <div className="fixed bottom-4 left-4 z-40">
-        <DynamicMusicPlayer energyState={currentEnergyState as 'focus' | 'energy' | 'momentum' | 'freeze'} />
+        <DynamicMusicPlayer 
+          emotionalState={selectedMood as 'anxious' | 'bored' | 'overwhelmed' | 'energized' | 'sluggish' | 'scattered'}
+          energyState={currentEnergyState as 'focus' | 'energy' | 'momentum' | 'freeze'} 
+        />
       </div>
       
       <AffirmationOverlay />

@@ -956,3 +956,5 @@
 [2026-02-13T19:33:50.572Z] 2:33:50 PM [vite] (client) hmr update /src/index.css, /src/components/CalmOpening.tsx
 [2026-02-13T19:46:55.581Z] 2:46:55 PM [vite] (client) hmr update /src/index.css, /src/components/CalmOpening.tsx
 [2026-02-13T20:09:43.520Z] 3:09:43 PM [vite] (client) hmr update /src/pages/Dash.tsx, /src/index.css
+[2026-02-13T20:17:18.567Z] 3:17:18 PM [vite] (client) hmr update /src/index.css, /src/components/DynamicMusicPlayer.tsx
+[2026-02-13T20:18:04.152Z] 3:18:04 PM [vite] (client) hmr update /src/pages/Dash.tsx, /src/index.css

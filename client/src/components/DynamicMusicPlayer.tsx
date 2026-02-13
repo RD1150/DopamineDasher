@@ -3,31 +3,48 @@ import { Volume2, VolumeX } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface DynamicMusicPlayerProps {
+  emotionalState?: 'anxious' | 'bored' | 'overwhelmed' | 'energized' | 'sluggish' | 'scattered';
   energyState?: 'focus' | 'energy' | 'momentum' | 'freeze';
 }
 
 const MUSIC_TRACKS = {
+  // Emotional states (primary)
+  anxious: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/fdmtspcOLsXXYPPq.mp3', // Lo-fi Study - FasSounds
+  bored: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/vcrYUJCHNMYYjbbP.mp3', // Bounce On It - Alex Grohl
+  overwhelmed: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/zIJHPHPLUdfJAFpR.mp3', // Nostalgic Memories - Clavier
+  energized: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/vcrYUJCHNMYYjbbP.mp3', // Bounce On It - Alex Grohl
+  sluggish: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/JdgMSSGZhctHPrOT.mp3', // Silent Bloom - Paul Yudin
+  scattered: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/JsRCCmqtWESWgHWg.mp3', // Minimal Ambient - Mihai Landrei
+
+  // Energy states (fallback)
   focus: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/jMNaKdGZwdHmmfrr.mp3', // Weeknds - Dayfox
   energy: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/vcrYUJCHNMYYjbbP.mp3', // Bounce On It - Alex Grohl
   momentum: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/vcrYUJCHNMYYjbbP.mp3', // Bounce On It - Alex Grohl
   freeze: 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/fdmtspcOLsXXYPPq.mp3', // Lo-fi Study - FasSounds
 };
 
-export default function DynamicMusicPlayer({ energyState = 'focus' }: DynamicMusicPlayerProps) {
+export default function DynamicMusicPlayer({ 
+  emotionalState,
+  energyState = 'focus' 
+}: DynamicMusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isMusicEnabled, setIsMusicEnabled] = useState(() => {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem('musicEnabled') !== 'false';
   });
-  const [currentTrack, setCurrentTrack] = useState<string>(MUSIC_TRACKS[energyState]);
+  
+  // Determine which track to play (emotional state takes priority)
+  const currentTrack = emotionalState 
+    ? MUSIC_TRACKS[emotionalState]
+    : MUSIC_TRACKS[energyState];
 
-  // Switch track when energy state changes
+  const [prevTrack, setPrevTrack] = useState<string>(currentTrack);
+
+  // Switch track when state changes
   useEffect(() => {
-    const newTrack = MUSIC_TRACKS[energyState];
-    if (newTrack !== currentTrack && audioRef.current) {
-      // Fade out, switch track, fade in
-      setCurrentTrack(newTrack);
-      audioRef.current.src = newTrack;
+    if (currentTrack !== prevTrack && audioRef.current) {
+      setPrevTrack(currentTrack);
+      audioRef.current.src = currentTrack;
       
       if (isMusicEnabled) {
         audioRef.current.play().catch(() => {
@@ -35,7 +52,7 @@ export default function DynamicMusicPlayer({ energyState = 'focus' }: DynamicMus
         });
       }
     }
-  }, [energyState, currentTrack, isMusicEnabled]);
+  }, [currentTrack, prevTrack, isMusicEnabled]);
 
   // Play/pause based on enabled state
   useEffect(() => {
