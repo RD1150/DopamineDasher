@@ -46,8 +46,6 @@ import DemoOnboarding from '@/components/DemoOnboarding';
 import { demoAnalytics } from '@/lib/demoAnalytics';
 import CalmOpening from '@/components/CalmOpening';
 import FreezeMode from '@/components/FreezeMode';
-import DynamicMusicPlayer from '@/components/DynamicMusicPlayer';
-import AutoFreezeDetection from '@/components/AutoFreezeDetection';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -142,7 +140,6 @@ export default function Dash() {
   const totalTasksCompleted = useStore((state) => state.totalTasksCompleted);
   const [showCalmOpening, setShowCalmOpening] = useState(true);
   const [showFreezeMode, setShowFreezeMode] = useState(false);
-  const currentEnergyState = useStore((state) => state.currentEnergyState) || 'focus';
   
   const handleMoodSelect = (mood: 'anxious' | 'bored' | 'overwhelmed' | 'energized') => {
     setSelectedMood(mood);
@@ -576,17 +573,6 @@ export default function Dash() {
         onClose={() => setShowFreezeMode(false)}
         onReady={() => setShowFreezeMode(false)}
       />
-      
-      {/* Dynamic Music Player */}
-      <div className="fixed bottom-4 left-4 z-40">
-        <DynamicMusicPlayer 
-          emotionalState={selectedMood as 'anxious' | 'bored' | 'overwhelmed' | 'energized' | 'sluggish' | 'scattered'}
-          energyState={currentEnergyState as 'focus' | 'energy' | 'momentum' | 'freeze'} 
-        />
-      </div>
-      
-      {/* Auto Freeze Detection - Breathing overlay for inactivity */}
-      <AutoFreezeDetection inactivityThreshold={10000} />
       
       <AffirmationOverlay />
       <TutorialOverlay />
