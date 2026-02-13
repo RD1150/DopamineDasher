@@ -38,6 +38,10 @@ async function startServer() {
     const hostWithoutPort = host.split(':')[0]; // Remove port if present
     if (hostWithoutPort === 'dopaminedasher.com') {
       const protocol = req.protocol || 'https';
+      // Add cache-busting headers to prevent browser caching
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
       return res.redirect(301, `${protocol}://www.dopaminedasher.com${req.originalUrl}`);
     }
     next();

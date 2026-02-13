@@ -933,3 +933,6 @@
 [2026-02-11T22:41:23.864Z] 5:41:23 PM [tsx] change in ./server/_core/index.ts Restarting...
 [2026-02-11T22:41:25.424Z] c[OAuth] Initialized with baseURL: https://api.manus.im
 [2026-02-11T22:41:25.643Z] Server running on http://localhost:3000/
+[2026-02-13T05:57:13.957Z] 12:57:13 AM [tsx] change in ./server/_core/index.ts Restarting...
+[2026-02-13T05:57:20.838Z] c[OAuth] Initialized with baseURL: https://api.manus.im
+[2026-02-13T05:57:22.195Z] Server running on http://localhost:3000/

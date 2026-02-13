@@ -4109,6 +4109,9 @@ async function startServer() {
     const hostWithoutPort = host.split(":")[0];
     if (hostWithoutPort === "dopaminedasher.com") {
       const protocol = req.protocol || "https";
+      res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.set("Pragma", "no-cache");
+      res.set("Expires", "0");
       return res.redirect(301, `${protocol}://www.dopaminedasher.com${req.originalUrl}`);
     }
     next();
