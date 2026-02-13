@@ -47,6 +47,7 @@ import { demoAnalytics } from '@/lib/demoAnalytics';
 import CalmOpening from '@/components/CalmOpening';
 import FreezeMode from '@/components/FreezeMode';
 import DynamicMusicPlayer from '@/components/DynamicMusicPlayer';
+import AutoFreezeDetection from '@/components/AutoFreezeDetection';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -583,6 +584,9 @@ export default function Dash() {
           energyState={currentEnergyState as 'focus' | 'energy' | 'momentum' | 'freeze'} 
         />
       </div>
+      
+      {/* Auto Freeze Detection - Breathing overlay for inactivity */}
+      <AutoFreezeDetection inactivityThreshold={10000} />
       
       <AffirmationOverlay />
       <TutorialOverlay />
