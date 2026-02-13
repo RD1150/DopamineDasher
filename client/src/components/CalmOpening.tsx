@@ -58,7 +58,7 @@ export default function CalmOpening({ onComplete }: CalmOpeningProps) {
         {/* Opening Music */}
         <audio
           ref={audioRef}
-          src="/dopamine-dasher-opening-music.mp3"
+          src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/vwjZmpNajZiqgvDL.mp3"
           loop
           className="hidden"
         />
