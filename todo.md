@@ -177,3 +177,48 @@
 - [ ] Track time from freeze to first micro-action
 - [ ] Monitor this metric instead of daily streak length
 - [ ] Measure re-engagement after drift periods
+
+
+## Activation Flow Architecture (PDF Strategy)
+
+### Phase 1: Replace Time-Commitment Question
+- [ ] Remove "How much time do you have?" question
+- [ ] Replace with "How small do you want to start?"
+- [ ] Add four options:
+  - [ ] "Just 2 minutes (No pressure)"
+  - [ ] "A quick 5"
+  - [ ] "A short burst"
+  - [ ] "I'm in — let's go"
+- [ ] Update EnergySelector or create new component
+
+### Phase 2: Emotional Preview Layer
+- [ ] Add micro-outcome preview under each option
+- [ ] "Just 2 minutes" → "You'll feel lighter."
+- [ ] "A quick 5" → "Noticeable relief."
+- [ ] "A short burst" → "Momentum unlocked."
+- [ ] "I'm in" → "Let's build flow."
+- [ ] Focus on emotional reward, not time commitment
+
+### Phase 3: Auto-Start Default
+- [ ] Detect 3-second hesitation → soft highlight "Just 2 minutes"
+- [ ] Detect 5-second hesitation → auto-start 2-minute timer
+- [ ] Goal: Zero friction activation
+- [ ] Test timing and UX
+
+### Phase 4: First Session Flow
+- [ ] Tap option → timer starts immediately
+- [ ] No confirmation screens
+- [ ] No additional prompts
+- [ ] Immediate action reduces freeze response
+
+### Phase 5: Reactivation Push Notification Logic
+- [ ] 48 hours inactive: "Drift happens. Want to feel a little lighter?"
+- [ ] 72 hours inactive: "Freeze day? I've got one tiny thing."
+- [ ] 7 days inactive: "No pressure. I'm still here."
+- [ ] Tone: calm, supportive, zero shame, zero urgency
+- [ ] Integrate with notification system
+
+### Phase 6: Core Philosophy Implementation
+- [ ] Verify: Reduce friction → Provide safety → Deliver instant relief → Build momentum
+- [ ] Test activation flow end-to-end
+- [ ] Measure: Time from freeze to first micro-action

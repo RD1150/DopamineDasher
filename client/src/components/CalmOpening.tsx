@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Mascot from './Mascot';
 
@@ -8,8 +8,16 @@ interface CalmOpeningProps {
 
 export default function CalmOpening({ onComplete }: CalmOpeningProps) {
   const [phase, setPhase] = useState<'greeting' | 'pause' | 'ready'>('greeting');
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
+    // Play opening music
+    if (audioRef.current) {
+      audioRef.current.play().catch(() => {
+        // Audio autoplay may be blocked, that's okay
+      });
+    }
+
     // Phase 1: Show "It's okay" for 2 seconds
     const phase1Timer = setTimeout(() => {
       setPhase('pause');
@@ -33,6 +41,10 @@ export default function CalmOpening({ onComplete }: CalmOpeningProps) {
     if (phase === 'ready') {
       // Phase 3: Show ready message, then complete after 2 seconds
       const phase3Timer = setTimeout(() => {
+        // Fade out music
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
         onComplete?.();
       }, 2000);
 
@@ -43,6 +55,14 @@ export default function CalmOpening({ onComplete }: CalmOpeningProps) {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 bg-background flex flex-col items-center justify-center z-50 overflow-hidden">
+        {/* Opening Music */}
+        <audio
+          ref={audioRef}
+          src="/dopamine-dasher-opening-music.mp3"
+          loop
+          className="hidden"
+        />
+
         {/* Calm background gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-primary/5 pointer-events-none" />
 
