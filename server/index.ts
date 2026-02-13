@@ -10,6 +10,29 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
+  // CRITICAL: Domain redirect middleware MUST be first, before all other handlers
+  // This redirects dopaminedasher.com → www.dopaminedasher.com with cache-busting headers
+  app.use((req, res, next) => {
+    const host = req.get("host") || "";
+    const hostWithoutPort = host.split(":")[0]; // Remove port if present
+
+    // Check if this is the root domain (not www subdomain)
+    if (hostWithoutPort === "dopaminedasher.com") {
+      // Send aggressive cache-busting headers
+      res.set({
+        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      });
+
+      // Redirect to www subdomain with 301 permanent redirect
+      const redirectUrl = `${req.protocol}://www.dopaminedasher.com${req.originalUrl}`;
+      return res.redirect(301, redirectUrl);
+    }
+
+    next();
+  });
+
   // Serve static files from dist/public in production
   const staticPath =
     process.env.NODE_ENV === "production"
