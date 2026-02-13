@@ -11,8 +11,9 @@ export default function CalmOpening({ onComplete }: CalmOpeningProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    // Play opening music
+    // Play opening music at 50% volume
     if (audioRef.current) {
+      audioRef.current.volume = 0.5; // 50% volume
       audioRef.current.play().catch(() => {
         // Audio autoplay may be blocked, that's okay
       });
@@ -60,6 +61,7 @@ export default function CalmOpening({ onComplete }: CalmOpeningProps) {
           ref={audioRef}
           src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/vwjZmpNajZiqgvDL.mp3"
           loop
+          crossOrigin="anonymous"
           className="hidden"
         />
 
