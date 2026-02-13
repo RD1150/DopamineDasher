@@ -91,7 +91,9 @@ describe('Pick & Win Router', () => {
       
       const daysDiff = Math.floor((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       
-      expect(daysDiff).toBe(30);
+      // Allow 29-30 days due to time passing during test execution
+      expect(daysDiff).toBeGreaterThanOrEqual(29);
+      expect(daysDiff).toBeLessThanOrEqual(30);
     });
   });
 });
