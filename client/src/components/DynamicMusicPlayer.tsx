@@ -28,6 +28,7 @@ export default function DynamicMusicPlayer({
   energyState = 'focus' 
 }: DynamicMusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [userInteracted, setUserInteracted] = useState(false);
   const [isMusicEnabled, setIsMusicEnabled] = useState(() => {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem('musicEnabled') !== 'false';
@@ -40,23 +41,44 @@ export default function DynamicMusicPlayer({
 
   const [prevTrack, setPrevTrack] = useState<string>(currentTrack);
 
+  // Set up user interaction listener for autoplay policy
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      setUserInteracted(true);
+      // Remove listeners after first interaction
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+    };
+
+    window.addEventListener('click', handleUserInteraction);
+    window.addEventListener('keydown', handleUserInteraction);
+    window.addEventListener('touchstart', handleUserInteraction);
+
+    return () => {
+      window.removeEventListener('click', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
+      window.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, []);
+
   // Switch track when state changes
   useEffect(() => {
     if (currentTrack !== prevTrack && audioRef.current) {
       setPrevTrack(currentTrack);
       audioRef.current.src = currentTrack;
       
-      if (isMusicEnabled) {
+      if (isMusicEnabled && userInteracted) {
         audioRef.current.play().catch(() => {
           // Autoplay may be blocked
         });
       }
     }
-  }, [currentTrack, prevTrack, isMusicEnabled]);
+  }, [currentTrack, prevTrack, isMusicEnabled, userInteracted]);
 
   // Play/pause based on enabled state
   useEffect(() => {
-    if (audioRef.current) {
+    if (audioRef.current && userInteracted) {
       if (isMusicEnabled) {
         audioRef.current.play().catch(() => {
           // Autoplay may be blocked
@@ -65,7 +87,7 @@ export default function DynamicMusicPlayer({
         audioRef.current.pause();
       }
     }
-  }, [isMusicEnabled]);
+  }, [isMusicEnabled, userInteracted]);
 
   // Save preference to localStorage
   useEffect(() => {
@@ -73,6 +95,7 @@ export default function DynamicMusicPlayer({
   }, [isMusicEnabled]);
 
   const toggleMusic = () => {
+    setUserInteracted(true);
     setIsMusicEnabled(!isMusicEnabled);
   };
 
@@ -84,6 +107,7 @@ export default function DynamicMusicPlayer({
         src={currentTrack}
         loop
         className="hidden"
+        crossOrigin="anonymous"
       />
 
       {/* Music toggle button */}
