@@ -56,14 +56,14 @@ export default function CalmOpening({ onComplete }: CalmOpeningProps) {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 bg-background flex flex-col items-center justify-center z-50 overflow-hidden">
-        {/* Opening Music */}
-        <audio
+        {/* Opening Music - Disabled for now due to audio loading issues */}
+        {/* <audio
           ref={audioRef}
           src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/vwjZmpNajZiqgvDL.mp3"
           loop
           crossOrigin="anonymous"
           className="hidden"
-        />
+        /> */}
 
         {/* Calm background gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-primary/5 pointer-events-none" />
