@@ -222,3 +222,30 @@
 - [ ] Verify: Reduce friction → Provide safety → Deliver instant relief → Build momentum
 - [ ] Test activation flow end-to-end
 - [ ] Measure: Time from freeze to first micro-action
+
+
+## Final Improvements - In Progress
+
+### 1. Activation Flow Architecture
+- [ ] Replace "How much time?" question with emotional micro-commitment options
+- [ ] Add four options: "Just 2 minutes", "Quick 5", "Let's go", "I'm ready"
+- [ ] Add emotional preview text under each option
+- [ ] Implement auto-start default (3-5 second hesitation detection)
+- [ ] Ensure first session has zero friction (tap → timer starts)
+
+### 2. Freeze Detection Testing
+- [ ] Verify breathing overlay auto-triggers after 10 seconds inactivity
+- [ ] Test that overlay is non-intrusive and can be dismissed easily
+- [ ] Confirm breathing animation is smooth and calming
+
+### 3. Language Refinement
+- [ ] Replace "Complete" with "We did it" or "That's one"
+- [ ] Replace "Start" with "Let's touch this" or "We'll move one"
+- [ ] Replace "Finish" with "Reduce this by 1%"
+- [ ] Replace "Have to" with "Let's" or "We'll"
+- [ ] Update all task-related copy to be supportive, not commanding
+
+### 4. Sound Effects Cleanup
+- [ ] Remove harsh opening music (already done)
+- [ ] Keep only gentle, non-jarring audio cues
+- [ ] Verify all sounds feel calm and supportive, not game-like

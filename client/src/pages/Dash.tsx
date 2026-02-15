@@ -47,6 +47,7 @@ import { demoAnalytics } from '@/lib/demoAnalytics';
 import CalmOpening from '@/components/CalmOpening';
 import FreezeMode from '@/components/FreezeMode';
 import SimpleMusicToggle from '@/components/SimpleMusicToggle';
+import ActivationFlow from '@/components/ActivationFlow';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -85,6 +86,7 @@ export default function Dash() {
   const [editText, setEditText] = useState('');
   const [magicMode, setMagicMode] = useState(false);
   const [focusTask, setFocusTask] = useState<{id: string, text: string} | null>(null);
+  const [selectedCommitment, setSelectedCommitment] = useState<number | null>(null);
   const [challengeMode, setChallengeMode] = useState(false);
   const [challengeTime, setChallengeTime] = useState<number | null>(null);
   const [comboCount, setComboCount] = useState(0);
@@ -1331,14 +1333,41 @@ export default function Dash() {
         )}
         </AnimatePresence>
 
-        {focusTask && (
+        {focusTask && !selectedCommitment && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-background rounded-2xl p-8 max-w-md w-full"
+            >
+              <ActivationFlow
+                onSelect={(minutes) => {
+                  setSelectedCommitment(minutes);
+                }}
+              />
+              <button
+                onClick={() => setFocusTask(null)}
+                className="mt-6 w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Not now
+              </button>
+            </motion.div>
+          </div>
+        )}
+
+        {focusTask && selectedCommitment && (
           <FocusMode 
             isOpen={!!focusTask}
-            onClose={() => setFocusTask(null)}
+            onClose={() => {
+              setFocusTask(null);
+              setSelectedCommitment(null);
+            }}
             taskName={focusTask.text}
+            taskDuration={selectedCommitment}
             onComplete={() => {
               handleToggle(focusTask.id);
               setFocusTask(null);
+              setSelectedCommitment(null);
             }}
           />
         )}
