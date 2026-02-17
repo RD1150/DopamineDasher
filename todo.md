@@ -249,3 +249,13 @@
 - [ ] Remove harsh opening music (already done)
 - [ ] Keep only gentle, non-jarring audio cues
 - [ ] Verify all sounds feel calm and supportive, not game-like
+
+
+## Focus Music Implementation
+- [ ] Add soft ambient music during focus sessions
+- [ ] Music plays only during active focus timer
+- [ ] Music stops when timer ends or user pauses
+- [ ] Music toggle in focus mode UI
+- [ ] Use calm, non-intrusive tracks (lo-fi, ambient, nature sounds)
+- [ ] Volume set to 0.3-0.4 (background level, not distracting)
+- [ ] Test music engagement impact on session completion rates

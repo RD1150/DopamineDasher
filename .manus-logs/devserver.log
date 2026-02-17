@@ -971,3 +971,5 @@
 [2026-02-15T01:51:25.538Z] 8:51:25 PM [vite] (client) hmr update /src/pages/Dash.tsx, /src/index.css
 [2026-02-15T01:51:48.277Z] 8:51:48 PM [vite] (client) hmr update /src/pages/Dash.tsx, /src/index.css
 [2026-02-16T10:38:23.771Z] 5:38:23 AM [vite] (client) hmr update /src/pages/Home.tsx, /src/index.css
+[2026-02-17T20:27:13.578Z] 3:27:13 PM [vite] (client) hmr update /src/index.css, /src/components/FocusMode.tsx
+[2026-02-17T20:27:26.508Z] 3:27:26 PM [vite] (client) hmr update /src/index.css, /src/components/FocusMode.tsx

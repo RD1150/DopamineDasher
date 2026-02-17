@@ -6,6 +6,7 @@ import { Play, Pause, X, CheckCircle2, CloudRain, Trees, Waves, StopCircle } fro
 import { soundManager } from '@/lib/sound';
 import { useStore } from '@/lib/store';
 import MicroTryPrompt from '@/components/MicroTryPrompt';
+import FocusMusic from '@/components/FocusMusic';
 
 interface FocusModeProps {
   isOpen: boolean;
@@ -193,6 +194,9 @@ export default function FocusMode({ isOpen, onClose, taskName, onComplete, taskD
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center p-6"
       >
+        {/* Focus Music */}
+        <FocusMusic isActive={isActive} />
+
         <button 
           onClick={onClose}
           className="absolute top-6 right-6 p-2 text-muted-foreground hover:text-foreground"
