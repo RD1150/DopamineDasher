@@ -174,7 +174,7 @@ export default function Home() {
               playsInline
               onTimeUpdate={handleTimeUpdate}
               className="w-full h-auto block"
-              style={{ maxHeight: '60vh', objectFit: 'cover' }}
+              style={{ objectFit: 'contain', backgroundColor: '#000' }}
             >
               <source src="https://d2xsxph8kpxj0f.cloudfront.net/310419663026756998/KeSi6Ejr7uHPV3mimmzDSf/1773127285_68110ca9.mp4" type="video/mp4" />
               Your browser does not support the video tag.
