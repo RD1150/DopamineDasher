@@ -170,6 +170,13 @@ export default function Home() {
               <source src="https://d2xsxph8kpxj0f.cloudfront.net/310419663026756998/KeSi6Ejr7uHPV3mimmzDSf/1773087031_06582604.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+              <div className="bg-yellow-300 px-8 py-4 rounded-lg shadow-lg">
+                <p className="text-black font-bold text-lg text-center leading-tight">
+                  Download<br />Dopamine Dasher
+                </p>
+              </div>
+            </div>
           </div>
           <div className="flex justify-center mt-6">
             <Button
