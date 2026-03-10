@@ -172,7 +172,6 @@ export default function Home() {
               ref={videoRef}
               autoPlay
               playsInline
-              loop
               onTimeUpdate={handleTimeUpdate}
               className="w-full h-auto block"
               style={{ maxHeight: '60vh', objectFit: 'cover' }}
