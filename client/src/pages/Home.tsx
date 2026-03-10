@@ -171,7 +171,6 @@ export default function Home() {
             <video
               ref={videoRef}
               autoPlay
-              muted
               playsInline
               loop
               onTimeUpdate={handleTimeUpdate}
