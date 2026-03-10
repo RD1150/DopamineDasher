@@ -177,24 +177,10 @@ export default function Home() {
               className="w-full h-auto block"
               style={{ maxHeight: '60vh', objectFit: 'cover' }}
             >
-              <source src="https://d2xsxph8kpxj0f.cloudfront.net/310419663026756998/KeSi6Ejr7uHPV3mimmzDSf/1773087031_489b755e.mp4" type="video/mp4" />
+              <source src="https://d2xsxph8kpxj0f.cloudfront.net/310419663026756998/KeSi6Ejr7uHPV3mimmzDSf/1773127285_68110ca9.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
-            {showLabel && (
-              <motion.div
-                className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="bg-orange-500 px-8 py-3 rounded-lg shadow-lg">
-                  <p className="text-white font-bold text-lg leading-tight">
-                    Download Dopamine Dasher
-                  </p>
-                </div>
-              </motion.div>
-            )}
+
           </div>
           <div className="flex justify-center mt-6">
             <Button
