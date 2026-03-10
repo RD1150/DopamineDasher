@@ -182,15 +182,15 @@ export default function Home() {
             </video>
             {showLabel && (
               <motion.div
-                className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
+                className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="bg-yellow-300 px-8 py-4 rounded-lg shadow-lg">
-                  <p className="text-black font-bold text-lg text-center leading-tight">
-                    Download<br />Dopamine Dasher
+                <div className="bg-orange-500 px-8 py-3 rounded-lg shadow-lg">
+                  <p className="text-white font-bold text-lg leading-tight">
+                    Download Dopamine Dasher
                   </p>
                 </div>
               </motion.div>
