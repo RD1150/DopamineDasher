@@ -15,6 +15,7 @@ import { retentionRouter } from "./retentionRouter";
 import { coachRouter } from "./coachRouter";
 import { paymentsRouter } from "./paymentsRouter";
 import { analyticsRouter } from "./analyticsRouter";
+import { sharingRouter } from "./sharingRouter";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-12-15.clover',
@@ -511,6 +512,7 @@ export const appRouter = router({
   coach: coachRouter,
   payments: paymentsRouter,
   analytics: analyticsRouter,
+  sharing: sharingRouter,
 });
 
 export type AppRouter = typeof appRouter;

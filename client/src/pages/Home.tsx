@@ -157,16 +157,17 @@ export default function Home() {
           className="max-w-5xl mx-auto"
         >
           <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-black/25 z-10"></div>
             <video
               ref={videoRef}
               autoPlay
-              muted={false}
+              muted
               playsInline
-              controls
+              loop
               className="w-full h-auto block"
               style={{ maxHeight: '60vh', objectFit: 'cover' }}
             >
-              <source src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663026756998/WwnoyLTdAdlpXOUM.mp4" type="video/mp4" />
+              <source src="https://d2xsxph8kpxj0f.cloudfront.net/310419663026756998/KeSi6Ejr7uHPV3mimmzDSf/1773087031_06582604.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           </div>

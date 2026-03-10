@@ -259,3 +259,24 @@
 - [ ] Use calm, non-intrusive tracks (lo-fi, ambient, nature sounds)
 - [ ] Volume set to 0.3-0.4 (background level, not distracting)
 - [ ] Test music engagement impact on session completion rates
+
+
+## Social Sharing Feature - In Progress
+- [ ] Create ShareModal component with social platform options (Twitter, LinkedIn, Facebook)
+- [ ] Implement share URL generation with task details
+- [ ] Add social media intent links (Twitter, LinkedIn, Facebook share)
+- [ ] Update database schema to track shares and analytics
+- [ ] Add share button to task completion flow
+- [ ] Implement customizable share messages
+- [ ] Add visual preview of shared content
+- [ ] Write tests for sharing functionality
+- [ ] Test social media sharing across platforms
+
+
+## Promotional Video Integration - Completed
+- [x] Upload promotional video to S3
+- [x] Integrate video as hero section background
+- [x] Add dark overlay for text readability
+- [x] Implement autoplay and mute for video
+- [ ] Test video responsiveness on mobile
+- [ ] Verify video performance and load times

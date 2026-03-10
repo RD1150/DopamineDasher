@@ -35,6 +35,7 @@ __export(schema_exports, {
   referrals: () => referrals,
   retentionMetrics: () => retentionMetrics,
   rewards: () => rewards,
+  socialShares: () => socialShares,
   streakMilestones: () => streakMilestones,
   subscriptions: () => subscriptions,
   tasks: () => tasks,
@@ -50,7 +51,7 @@ __export(schema_exports, {
   weeklyCharacterPicks: () => weeklyCharacterPicks
 });
 import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, json, decimal } from "drizzle-orm/mysql-core";
-var users, userProfiles, tasks, journalEntries, dailyAffirmations, habits, habitCompletions, moodEntries, userStats, leaderboardEntries, contests, contestParticipation, rewards, userRewards, dailyCheckIns, termsVersions, userTermsAcceptance, emailVerificationCodes, nervousSystemStates, decisionTreeSessions, characterPicks, weeklyCharacterPicks, feedbacks, coachConversations, userTechniqueEffectiveness, abTestVariants, retentionMetrics, techniqueRatings, coinPurchases, referrals, subscriptions, premiumPreferences, autoDashSuggestions, upsellPrompts, analyticsEvents, notificationABTests, streakMilestones;
+var users, userProfiles, tasks, journalEntries, dailyAffirmations, habits, habitCompletions, moodEntries, userStats, leaderboardEntries, contests, contestParticipation, rewards, userRewards, dailyCheckIns, termsVersions, userTermsAcceptance, emailVerificationCodes, nervousSystemStates, decisionTreeSessions, characterPicks, weeklyCharacterPicks, feedbacks, coachConversations, userTechniqueEffectiveness, abTestVariants, retentionMetrics, techniqueRatings, socialShares, coinPurchases, referrals, subscriptions, premiumPreferences, autoDashSuggestions, upsellPrompts, analyticsEvents, notificationABTests, streakMilestones;
 var init_schema = __esm({
   "drizzle/schema.ts"() {
     "use strict";
@@ -465,6 +466,22 @@ var init_schema = __esm({
       // 1-5 stars
       feedback: text("feedback"),
       // Optional user comment
+      createdAt: timestamp("createdAt").defaultNow().notNull()
+    });
+    socialShares = mysqlTable("socialShares", {
+      id: int("id").autoincrement().primaryKey(),
+      userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+      // Share details
+      taskTitle: text("taskTitle").notNull(),
+      platform: mysqlEnum("platform", ["twitter", "linkedin", "facebook", "clipboard"]).notNull(),
+      message: text("message"),
+      // Share context
+      timeSpent: int("timeSpent"),
+      // in seconds
+      streakCount: int("streakCount"),
+      // user's streak at time of share
+      // Tracking
+      sharedAt: timestamp("sharedAt").defaultNow().notNull(),
       createdAt: timestamp("createdAt").defaultNow().notNull()
     });
     coinPurchases = mysqlTable("coinPurchases", {
@@ -2299,7 +2316,7 @@ var systemRouter = router({
 
 // server/routers.ts
 init_db();
-import { z as z9 } from "zod";
+import { z as z10 } from "zod";
 import Stripe2 from "stripe";
 
 // shared/products.ts
@@ -3810,6 +3827,108 @@ var analyticsRouter = router({
   })
 });
 
+// server/sharingRouter.ts
+init_db();
+init_schema();
+import { z as z9 } from "zod";
+var sharingRouter = router({
+  /**
+   * Record a social share event
+   */
+  recordShare: protectedProcedure.input(z9.object({
+    taskTitle: z9.string(),
+    platform: z9.enum(["twitter", "linkedin", "facebook", "clipboard"]),
+    message: z9.string().optional(),
+    timeSpent: z9.number().optional(),
+    // in seconds
+    streakCount: z9.number().optional()
+  })).mutation(async ({ ctx, input }) => {
+    try {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+      await db.insert(socialShares).values({
+        userId: ctx.user.id,
+        taskTitle: input.taskTitle,
+        platform: input.platform,
+        message: input.message,
+        timeSpent: input.timeSpent,
+        streakCount: input.streakCount
+      });
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to record share:", error);
+      return { success: false, error: "Failed to record share" };
+    }
+  }),
+  /**
+   * Get user's share history
+   */
+  getShareHistory: protectedProcedure.input(z9.object({
+    limit: z9.number().default(10),
+    offset: z9.number().default(0)
+  })).query(async ({ ctx, input }) => {
+    try {
+      const db = await getDb();
+      if (!db) return [];
+      const shares = await db.select().from(socialShares).where(socialShares.userId.equals(ctx.user.id)).orderBy(socialShares.sharedAt.desc()).limit(input.limit).offset(input.offset);
+      return shares;
+    } catch (error) {
+      console.error("Failed to get share history:", error);
+      return [];
+    }
+  }),
+  /**
+   * Get share statistics for the user
+   */
+  getShareStats: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const db = await getDb();
+      if (!db) return {
+        totalShares: 0,
+        sharesByPlatform: {
+          twitter: 0,
+          linkedin: 0,
+          facebook: 0,
+          clipboard: 0
+        },
+        mostSharedTask: null
+      };
+      const shares = await db.select().from(socialShares).where(socialShares.userId.equals(ctx.user.id));
+      const stats = {
+        totalShares: shares.length,
+        sharesByPlatform: {
+          twitter: shares.filter((s) => s.platform === "twitter").length,
+          linkedin: shares.filter((s) => s.platform === "linkedin").length,
+          facebook: shares.filter((s) => s.platform === "facebook").length,
+          clipboard: shares.filter((s) => s.platform === "clipboard").length
+        },
+        mostSharedTask: shares.length > 0 ? shares.reduce((acc, curr) => {
+          const existing = acc.find((item) => item.title === curr.taskTitle);
+          if (existing) {
+            existing.count++;
+          } else {
+            acc.push({ title: curr.taskTitle, count: 1 });
+          }
+          return acc;
+        }, []).sort((a, b) => b.count - a.count)[0] : null
+      };
+      return stats;
+    } catch (error) {
+      console.error("Failed to get share stats:", error);
+      return {
+        totalShares: 0,
+        sharesByPlatform: {
+          twitter: 0,
+          linkedin: 0,
+          facebook: 0,
+          clipboard: 0
+        },
+        mostSharedTask: null
+      };
+    }
+  })
+});
+
 // server/routers.ts
 var stripe2 = new Stripe2(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-12-15.clover"
@@ -3847,26 +3966,26 @@ var appRouter = router({
       }
       return profile;
     }),
-    update: protectedProcedure.input(z9.object({
-      xp: z9.number().optional(),
-      level: z9.number().optional(),
-      coins: z9.number().optional(),
-      currentStreak: z9.number().optional(),
-      longestStreak: z9.number().optional(),
-      lastActiveDate: z9.string().optional(),
-      vacationModeActive: z9.number().optional(),
-      vacationModeStartDate: z9.string().optional(),
-      hasCompletedOnboarding: z9.number().optional(),
-      selectedFlavor: z9.string().optional(),
-      selectedContext: z9.string().optional(),
-      selectedTheme: z9.string().optional(),
-      mascotMood: z9.string().optional(),
-      lastPetTime: z9.date().optional(),
-      lastFeedTime: z9.date().optional(),
-      purchasedItems: z9.array(z9.string()).optional(),
-      equippedAccessories: z9.array(z9.string()).optional(),
-      soundEnabled: z9.number().optional(),
-      soundTheme: z9.string().optional()
+    update: protectedProcedure.input(z10.object({
+      xp: z10.number().optional(),
+      level: z10.number().optional(),
+      coins: z10.number().optional(),
+      currentStreak: z10.number().optional(),
+      longestStreak: z10.number().optional(),
+      lastActiveDate: z10.string().optional(),
+      vacationModeActive: z10.number().optional(),
+      vacationModeStartDate: z10.string().optional(),
+      hasCompletedOnboarding: z10.number().optional(),
+      selectedFlavor: z10.string().optional(),
+      selectedContext: z10.string().optional(),
+      selectedTheme: z10.string().optional(),
+      mascotMood: z10.string().optional(),
+      lastPetTime: z10.date().optional(),
+      lastFeedTime: z10.date().optional(),
+      purchasedItems: z10.array(z10.string()).optional(),
+      equippedAccessories: z10.array(z10.string()).optional(),
+      soundEnabled: z10.number().optional(),
+      soundTheme: z10.string().optional()
     })).mutation(async ({ ctx, input }) => {
       await updateUserProfile(ctx.user.id, input);
       return { success: true };
@@ -3874,25 +3993,25 @@ var appRouter = router({
   }),
   // Task procedures
   tasks: router({
-    list: protectedProcedure.input(z9.object({
-      completed: z9.boolean().optional()
+    list: protectedProcedure.input(z10.object({
+      completed: z10.boolean().optional()
     }).optional()).query(async ({ ctx, input }) => {
       return await getUserTasks(ctx.user.id, input?.completed);
     }),
-    create: protectedProcedure.input(z9.object({
-      title: z9.string(),
-      type: z9.enum(["quick", "boss"]),
-      category: z9.string().optional(),
-      durationMinutes: z9.number().default(5),
-      sequenceGroup: z9.string().optional(),
-      sequenceOrder: z9.number().optional(),
-      subtasks: z9.array(z9.object({
-        id: z9.string(),
-        text: z9.string(),
-        completed: z9.boolean()
+    create: protectedProcedure.input(z10.object({
+      title: z10.string(),
+      type: z10.enum(["quick", "boss"]),
+      category: z10.string().optional(),
+      durationMinutes: z10.number().default(5),
+      sequenceGroup: z10.string().optional(),
+      sequenceOrder: z10.number().optional(),
+      subtasks: z10.array(z10.object({
+        id: z10.string(),
+        text: z10.string(),
+        completed: z10.boolean()
       })).optional(),
-      xpReward: z9.number().default(10),
-      coinReward: z9.number().default(5)
+      xpReward: z10.number().default(10),
+      coinReward: z10.number().default(5)
     })).mutation(async ({ ctx, input }) => {
       await createTask({
         userId: ctx.user.id,
@@ -3901,24 +4020,24 @@ var appRouter = router({
       });
       return { success: true };
     }),
-    update: protectedProcedure.input(z9.object({
-      id: z9.number(),
-      title: z9.string().optional(),
-      durationMinutes: z9.number().optional(),
-      subtasks: z9.array(z9.object({
-        id: z9.string(),
-        text: z9.string(),
-        completed: z9.boolean()
+    update: protectedProcedure.input(z10.object({
+      id: z10.number(),
+      title: z10.string().optional(),
+      durationMinutes: z10.number().optional(),
+      subtasks: z10.array(z10.object({
+        id: z10.string(),
+        text: z10.string(),
+        completed: z10.boolean()
       })).optional(),
-      completed: z9.number().optional(),
-      completedAt: z9.date().optional()
+      completed: z10.number().optional(),
+      completedAt: z10.date().optional()
     })).mutation(async ({ ctx, input }) => {
       const { id, ...updates } = input;
       await updateTask(id, ctx.user.id, updates);
       return { success: true };
     }),
-    delete: protectedProcedure.input(z9.object({
-      id: z9.number()
+    delete: protectedProcedure.input(z10.object({
+      id: z10.number()
     })).mutation(async ({ ctx, input }) => {
       await deleteTask(input.id, ctx.user.id);
       return { success: true };
@@ -3929,13 +4048,13 @@ var appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return await getUserJournalEntries(ctx.user.id);
     }),
-    create: protectedProcedure.input(z9.object({
-      taskTitle: z9.string(),
-      taskType: z9.string(),
-      xpEarned: z9.number(),
-      coinEarned: z9.number(),
-      completedAt: z9.date(),
-      date: z9.string()
+    create: protectedProcedure.input(z10.object({
+      taskTitle: z10.string(),
+      taskType: z10.string(),
+      xpEarned: z10.number(),
+      coinEarned: z10.number(),
+      completedAt: z10.date(),
+      date: z10.string()
     })).mutation(async ({ ctx, input }) => {
       await createJournalEntry({
         userId: ctx.user.id,
@@ -3946,14 +4065,14 @@ var appRouter = router({
   }),
   // Daily Affirmation procedures
   affirmation: router({
-    getToday: protectedProcedure.input(z9.object({
-      date: z9.string()
+    getToday: protectedProcedure.input(z10.object({
+      date: z10.string()
     })).query(async ({ ctx, input }) => {
       return await getTodayAffirmation(ctx.user.id, input.date);
     }),
-    create: protectedProcedure.input(z9.object({
-      message: z9.string(),
-      shownDate: z9.string()
+    create: protectedProcedure.input(z10.object({
+      message: z10.string(),
+      shownDate: z10.string()
     })).mutation(async ({ ctx, input }) => {
       await createDailyAffirmation({
         userId: ctx.user.id,
@@ -3967,11 +4086,11 @@ var appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return await getUserHabits(ctx.user.id);
     }),
-    create: protectedProcedure.input(z9.object({
-      name: z9.string(),
-      description: z9.string().optional(),
-      frequency: z9.enum(["daily", "weekly", "custom"]).default("daily"),
-      targetCount: z9.number().default(1)
+    create: protectedProcedure.input(z10.object({
+      name: z10.string(),
+      description: z10.string().optional(),
+      frequency: z10.enum(["daily", "weekly", "custom"]).default("daily"),
+      targetCount: z10.number().default(1)
     })).mutation(async ({ ctx, input }) => {
       const result = await createHabit({
         userId: ctx.user.id,
@@ -3979,24 +4098,24 @@ var appRouter = router({
       });
       return { success: true };
     }),
-    complete: protectedProcedure.input(z9.object({
-      habitId: z9.number()
+    complete: protectedProcedure.input(z10.object({
+      habitId: z10.number()
     })).mutation(async ({ ctx, input }) => {
       return await completeHabit(input.habitId, ctx.user.id);
     }),
-    getCompletions: protectedProcedure.input(z9.object({
-      habitId: z9.number(),
-      days: z9.number().default(30)
+    getCompletions: protectedProcedure.input(z10.object({
+      habitId: z10.number(),
+      days: z10.number().default(30)
     })).query(async ({ ctx, input }) => {
       return await getHabitCompletions(input.habitId, ctx.user.id, input.days);
     })
   }),
   // Mood procedures
   mood: router({
-    checkIn: protectedProcedure.input(z9.object({
-      moodLevel: z9.number().min(1).max(5),
-      energyLevel: z9.enum(["low", "medium", "high"]),
-      notes: z9.string().optional()
+    checkIn: protectedProcedure.input(z10.object({
+      moodLevel: z10.number().min(1).max(5),
+      energyLevel: z10.enum(["low", "medium", "high"]),
+      notes: z10.string().optional()
     })).mutation(async ({ ctx, input }) => {
       const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
       await createMoodEntry({
@@ -4009,8 +4128,8 @@ var appRouter = router({
     getToday: protectedProcedure.query(async ({ ctx }) => {
       return await getTodayMoodEntry(ctx.user.id);
     }),
-    getHistory: protectedProcedure.input(z9.object({
-      days: z9.number().default(30)
+    getHistory: protectedProcedure.input(z10.object({
+      days: z10.number().default(30)
     })).query(async ({ ctx, input }) => {
       return await getMoodHistory(ctx.user.id, input.days);
     })
@@ -4078,14 +4197,14 @@ var appRouter = router({
     getActiveContests: publicProcedure.query(async () => {
       return await getActiveContests();
     }),
-    getContestProgress: protectedProcedure.input(z9.object({ contestId: z9.number() })).query(async ({ ctx, input }) => {
+    getContestProgress: protectedProcedure.input(z10.object({ contestId: z10.number() })).query(async ({ ctx, input }) => {
       return await getUserContestProgress(ctx.user.id, input.contestId);
     }),
-    updateContestProgress: protectedProcedure.input(z9.object({ contestId: z9.number(), progress: z9.number() })).mutation(async ({ ctx, input }) => {
+    updateContestProgress: protectedProcedure.input(z10.object({ contestId: z10.number(), progress: z10.number() })).mutation(async ({ ctx, input }) => {
       await updateContestProgress(ctx.user.id, input.contestId, input.progress);
       return { success: true };
     }),
-    getContestLeaderboard: publicProcedure.input(z9.object({ contestId: z9.number() })).query(async ({ input }) => {
+    getContestLeaderboard: publicProcedure.input(z10.object({ contestId: z10.number() })).query(async ({ input }) => {
       return await getContestLeaderboard(input.contestId);
     }),
     // Rewards
@@ -4095,7 +4214,7 @@ var appRouter = router({
     getUserRewards: protectedProcedure.query(async ({ ctx }) => {
       return await getUserRewards(ctx.user.id);
     }),
-    purchaseReward: protectedProcedure.input(z9.object({ rewardId: z9.number() })).mutation(async ({ ctx, input }) => {
+    purchaseReward: protectedProcedure.input(z10.object({ rewardId: z10.number() })).mutation(async ({ ctx, input }) => {
       const profile = await getUserProfile(ctx.user.id);
       const reward = (await getAllRewards()).find((r) => r.id === input.rewardId);
       if (!reward) throw new Error("Reward not found");
@@ -4110,10 +4229,10 @@ var appRouter = router({
     getTodayCheckIn: protectedProcedure.query(async ({ ctx }) => {
       return await getTodayCheckIn(ctx.user.id);
     }),
-    createCheckIn: protectedProcedure.input(z9.object({
-      energyLevel: z9.enum(["low", "medium", "high"]),
-      vibe: z9.enum(["anxious", "bored", "overwhelmed", "energized"]),
-      need: z9.enum(["quick-wins", "deep-focus", "movement", "rest"])
+    createCheckIn: protectedProcedure.input(z10.object({
+      energyLevel: z10.enum(["low", "medium", "high"]),
+      vibe: z10.enum(["anxious", "bored", "overwhelmed", "energized"]),
+      need: z10.enum(["quick-wins", "deep-focus", "movement", "rest"])
     })).mutation(async ({ ctx, input }) => {
       const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
       await createDailyCheckIn({
@@ -4123,12 +4242,12 @@ var appRouter = router({
       });
       return { success: true };
     }),
-    getCheckInHistory: protectedProcedure.input(z9.object({ days: z9.number().default(30) })).query(async ({ ctx, input }) => {
+    getCheckInHistory: protectedProcedure.input(z10.object({ days: z10.number().default(30) })).query(async ({ ctx, input }) => {
       return await getCheckInHistory(ctx.user.id, input.days);
     })
   }),
   emailVerification: router({
-    sendVerificationCode: protectedProcedure.input(z9.object({ email: z9.string().email() })).mutation(async ({ ctx, input }) => {
+    sendVerificationCode: protectedProcedure.input(z10.object({ email: z10.string().email() })).mutation(async ({ ctx, input }) => {
       try {
         const code = await createEmailVerificationCode(ctx.user.id, input.email);
         console.log(`[Email Verification] Code for ${input.email}: ${code}`);
@@ -4141,7 +4260,7 @@ var appRouter = router({
         throw new Error("Failed to send verification code");
       }
     }),
-    verifyCode: protectedProcedure.input(z9.object({ code: z9.string().length(6) })).mutation(async ({ ctx, input }) => {
+    verifyCode: protectedProcedure.input(z10.object({ code: z10.string().length(6) })).mutation(async ({ ctx, input }) => {
       try {
         const verified = await verifyEmailCode(ctx.user.id, input.code);
         if (!verified) {
@@ -4177,7 +4296,7 @@ var appRouter = router({
         effectiveDate: termsVersion.effectiveDate
       };
     }),
-    acceptTerms: protectedProcedure.input(z9.object({ termsVersionId: z9.number() })).mutation(async ({ ctx, input }) => {
+    acceptTerms: protectedProcedure.input(z10.object({ termsVersionId: z10.number() })).mutation(async ({ ctx, input }) => {
       try {
         const ipAddress = ctx.req.headers["x-forwarded-for"] || ctx.req.socket.remoteAddress || void 0;
         await recordTermsAcceptance(ctx.user.id, input.termsVersionId, ipAddress);
@@ -4200,7 +4319,8 @@ var appRouter = router({
   retention: retentionRouter,
   coach: coachRouter,
   payments: paymentsRouter,
-  analytics: analyticsRouter
+  analytics: analyticsRouter,
+  sharing: sharingRouter
 });
 
 // server/_core/context.ts

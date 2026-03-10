@@ -651,6 +651,32 @@ export const techniqueRatings = mysqlTable("techniqueRatings", {
 export type TechniqueRating = typeof techniqueRatings.$inferSelect;
 export type InsertTechniqueRating = typeof techniqueRatings.$inferInsert;
 
+/**
+ * Social Shares - Track user shares on social media platforms
+ * Used for analytics and viral growth tracking
+ */
+export const socialShares = mysqlTable("socialShares", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  
+  // Share details
+  taskTitle: text("taskTitle").notNull(),
+  platform: mysqlEnum("platform", ["twitter", "linkedin", "facebook", "clipboard"]).notNull(),
+  message: text("message"),
+  
+  // Share context
+  timeSpent: int("timeSpent"), // in seconds
+  streakCount: int("streakCount"), // user's streak at time of share
+  
+  // Tracking
+  sharedAt: timestamp("sharedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SocialShare = typeof socialShares.$inferSelect;
+export type InsertSocialShare = typeof socialShares.$inferInsert;
+export type InsertTechniqueRating = typeof techniqueRatings.$inferInsert;
+
 
 /**
  * Payment History - Track all coin purchases
