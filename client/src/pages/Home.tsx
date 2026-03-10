@@ -12,11 +12,21 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuth();
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [showLabel, setShowLabel] = React.useState(false);
 
   const handlePlayAgain = () => {
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play();
+      setShowLabel(false);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      // Show label in the last 1.5 seconds of the 8.2 second video
+      const timeRemaining = videoRef.current.duration - videoRef.current.currentTime;
+      setShowLabel(timeRemaining < 1.5 && timeRemaining > 0);
     }
   };
 
@@ -164,19 +174,28 @@ export default function Home() {
               muted
               playsInline
               loop
+              onTimeUpdate={handleTimeUpdate}
               className="w-full h-auto block"
               style={{ maxHeight: '60vh', objectFit: 'cover' }}
             >
               <source src="https://d2xsxph8kpxj0f.cloudfront.net/310419663026756998/KeSi6Ejr7uHPV3mimmzDSf/1773087031_06582604.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
-              <div className="bg-yellow-300 px-8 py-4 rounded-lg shadow-lg">
-                <p className="text-black font-bold text-lg text-center leading-tight">
-                  Download<br />Dopamine Dasher
-                </p>
-              </div>
-            </div>
+            {showLabel && (
+              <motion.div
+                className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="bg-yellow-300 px-8 py-4 rounded-lg shadow-lg">
+                  <p className="text-black font-bold text-lg text-center leading-tight">
+                    Download<br />Dopamine Dasher
+                  </p>
+                </div>
+              </motion.div>
+            )}
           </div>
           <div className="flex justify-center mt-6">
             <Button
