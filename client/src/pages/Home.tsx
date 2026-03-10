@@ -178,7 +178,7 @@ export default function Home() {
               className="w-full h-auto block"
               style={{ maxHeight: '60vh', objectFit: 'cover' }}
             >
-              <source src="https://d2xsxph8kpxj0f.cloudfront.net/310419663026756998/KeSi6Ejr7uHPV3mimmzDSf/1773087031_06582604.mp4" type="video/mp4" />
+              <source src="https://d2xsxph8kpxj0f.cloudfront.net/310419663026756998/KeSi6Ejr7uHPV3mimmzDSf/1773087031_489b755e.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             {showLabel && (
